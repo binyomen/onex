@@ -5,4 +5,5 @@ authors = ["Ben Weedon <ben@weedon.email>"]
 edition = "2018"
 
 [dependencies]
+uuid = { version = "0.8.1", features = ["v4"] }
 zip = { version = "0.5.8", default-features = false }

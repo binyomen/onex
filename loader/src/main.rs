@@ -1,8 +1,10 @@
 use std::{
     env,
-    fs::File,
+    fs::{create_dir_all, File},
     io::{self, Read, Seek, SeekFrom},
+    path::PathBuf,
 };
+use uuid::Uuid;
 use zip::ZipArchive;
 
 struct OffsetSeeker {
@@ -81,9 +83,29 @@ fn main() {
 
 fn print_app_dir(seeker: OffsetSeeker) -> io::Result<()> {
     let mut archive = ZipArchive::new(seeker)?;
+    let mut uuid_buffer = Uuid::encode_buffer();
+    let instance_id = Uuid::new_v4()
+        .to_hyphenated()
+        .encode_lower(&mut uuid_buffer);
+    let temp_dir = [env::temp_dir(), PathBuf::from(instance_id.to_owned())]
+        .iter()
+        .collect();
+
     for i in 0..archive.len() {
-        let file = archive.by_index(i)?;
-        println!("{}: {} ({} bytes)", i, file.name(), file.size());
+        let mut entry = archive.by_index(i)?;
+        let output_path: PathBuf = [&temp_dir, &PathBuf::from(entry.name())].iter().collect();
+
+        if entry.is_file() {
+            let parent = output_path.parent().unwrap();
+            if !parent.exists() {
+                create_dir_all(&parent)?;
+            }
+
+            let mut output_file = File::create(&output_path)?;
+            io::copy(&mut entry, &mut output_file)?;
+        } else {
+            create_dir_all(&output_path)?;
+        }
     }
 
     Ok(())
