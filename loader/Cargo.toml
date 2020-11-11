@@ -5,3 +5,4 @@ authors = ["Ben Weedon <ben@weedon.email>"]
 edition = "2018"
 
 [dependencies]
+zip = { version = "0.5.8", default-features = false }

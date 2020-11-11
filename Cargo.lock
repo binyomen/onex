@@ -24,6 +24,9 @@ dependencies = [
 [[package]]
 name = "loader"
 version = "0.1.0"
+dependencies = [
+ "zip",
+]
 
 [[package]]
 name = "proc-macro2"
