@@ -45,15 +45,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d58d1b70b004888f764dfbf6a26a3b0342a1632d33968e4a179d8011c760614"
 
 [[package]]
-name = "loader"
-version = "0.1.0"
-dependencies = [
- "scopeguard",
- "uuid",
- "zip",
-]
-
-[[package]]
 name = "ppv-lite86"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -138,6 +129,15 @@ name = "sexe"
 version = "0.1.0"
 dependencies = [
  "walkdir",
+ "zip",
+]
+
+[[package]]
+name = "sexe_loader"
+version = "0.1.0"
+dependencies = [
+ "scopeguard",
+ "uuid",
  "zip",
 ]
 
