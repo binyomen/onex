@@ -155,6 +155,9 @@ dependencies = [
 [[package]]
 name = "testapp"
 version = "0.1.0"
+dependencies = [
+ "walkdir",
+]
 
 [[package]]
 name = "thiserror"
