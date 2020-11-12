@@ -1,8 +1,10 @@
+use scopeguard::ScopeGuard;
 use std::{
     env,
-    fs::{create_dir_all, remove_dir_all, File},
+    fs::{self, create_dir_all, remove_dir_all, File},
     io::{self, Read, Seek, SeekFrom},
     path::PathBuf,
+    process::Command,
 };
 use uuid::Uuid;
 use zip::ZipArchive;
@@ -111,5 +113,16 @@ fn run_app(seeker: OffsetSeeker) -> io::Result<()> {
         }
     }
 
+    run(temp_dir)?;
+
+    Ok(())
+}
+
+fn run<F: FnOnce(std::path::PathBuf)>(app_dir: ScopeGuard<PathBuf, F>) -> io::Result<()> {
+    let exe_name_file: PathBuf = [&app_dir, &PathBuf::from("sexe_run")].iter().collect();
+    let exe_name = fs::read_to_string(exe_name_file)?.trim().to_owned();
+    let exe_file: PathBuf = [&app_dir, &PathBuf::from(exe_name)].iter().collect();
+
+    Command::new(exe_file).spawn()?.wait()?;
     Ok(())
 }
