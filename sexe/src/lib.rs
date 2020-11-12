@@ -50,18 +50,27 @@ pub type SexeResult<T> = Result<T, SexeError>;
 
 pub fn package_app(loader_path: String, app_dir: String, output_path: String) -> SexeResult<()> {
     let mut loader = File::open(&loader_path)?;
-    let mut loader_content = Vec::new();
-    loader.read_to_end(&mut loader_content)?;
+    let mut loader_bytes = Vec::new();
+    loader.read_to_end(&mut loader_bytes)?;
 
-    let data_offset = loader_content.len() as u64;
-    let mut new_content = loader_content;
     let app_dir_bytes = get_app_dir_bytes(&app_dir)?;
-    new_content.extend(app_dir_bytes);
+    let output = get_output_bytes(loader_bytes, app_dir_bytes);
 
     let mut output_file = File::create(&output_path)?;
-    output_file.write_all(&new_content)?;
-    let data_offset_bytes = data_offset.to_le_bytes();
-    output_file.write_all(&data_offset_bytes)?;
+    output_file.write_all(&output)?;
 
     Ok(())
+}
+
+fn get_output_bytes(loader_bytes: Vec<u8>, data_bytes: Vec<u8>) -> Vec<u8> {
+    let data_offset = loader_bytes.len() as u64;
+
+    let mut output = Vec::with_capacity(loader_bytes.len() + data_bytes.len() + 8);
+    output.extend(loader_bytes);
+    output.extend(data_bytes);
+
+    let data_offset_bytes = data_offset.to_le_bytes();
+    output.extend(&data_offset_bytes);
+
+    return output;
 }
