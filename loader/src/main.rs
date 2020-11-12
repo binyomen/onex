@@ -123,6 +123,7 @@ fn run<F: FnOnce(std::path::PathBuf)>(app_dir: ScopeGuard<PathBuf, F>) -> io::Re
     let exe_name = fs::read_to_string(exe_name_file)?.trim().to_owned();
     let exe_file: PathBuf = [&app_dir, &PathBuf::from(exe_name)].iter().collect();
 
-    Command::new(exe_file).spawn()?.wait()?;
+    let args: Vec<String> = env::args().skip(1).collect();
+    Command::new(exe_file).args(&args).spawn()?.wait()?;
     Ok(())
 }

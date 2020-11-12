@@ -1,3 +1,9 @@
+use std::env;
+
 fn main() {
-    println!("Hello, world!");
+    print!("Args: ");
+    for arg in env::args() {
+        print!("\"{}\" ", arg);
+    }
+    println!("");
 }

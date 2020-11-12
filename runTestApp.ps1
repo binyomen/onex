@@ -10,7 +10,7 @@ try {
     Copy-Item .\target\debug\testapp.exe .\target\testapp
 
     cargo run -p sexe -- .\target\debug\loader.exe .\target\testapp .\target\testapp_packaged.exe
-    .\target\testapp_packaged.exe
+    .\target\testapp_packaged.exe arg1 arg2 arg3
 } finally {
     Pop-Location
 }
