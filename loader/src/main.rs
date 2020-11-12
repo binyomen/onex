@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::{create_dir_all, File},
+    fs::{create_dir_all, remove_dir_all, File},
     io::{self, Read, Seek, SeekFrom},
     path::PathBuf,
 };
@@ -78,10 +78,10 @@ fn main() {
     let data_length = file_length - data_offset - 8;
 
     let seeker = OffsetSeeker::new(file, data_offset, data_length).unwrap();
-    print_app_dir(seeker).unwrap();
+    run_app(seeker).unwrap();
 }
 
-fn print_app_dir(seeker: OffsetSeeker) -> io::Result<()> {
+fn run_app(seeker: OffsetSeeker) -> io::Result<()> {
     let mut archive = ZipArchive::new(seeker)?;
     let mut uuid_buffer = Uuid::encode_buffer();
     let instance_id = Uuid::new_v4()
@@ -90,6 +90,9 @@ fn print_app_dir(seeker: OffsetSeeker) -> io::Result<()> {
     let temp_dir = [env::temp_dir(), PathBuf::from(instance_id.to_owned())]
         .iter()
         .collect();
+    let temp_dir = scopeguard::guard(temp_dir, |d| {
+        let _ = remove_dir_all(d);
+    });
 
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i)?;
