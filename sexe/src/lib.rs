@@ -4,7 +4,7 @@ use std::{
     error, fmt,
     fs::File,
     io::{self, Read, Write},
-    path::StripPrefixError,
+    path::{PathBuf, StripPrefixError},
 };
 use walkdir;
 use zip::result::ZipError;
@@ -48,7 +48,7 @@ impl From<io::Error> for SexeError {
 
 pub type SexeResult<T> = Result<T, SexeError>;
 
-pub fn package_app(loader_path: String, app_dir: String, output_path: String) -> SexeResult<()> {
+pub fn package_app(loader_path: PathBuf, app_dir: PathBuf, output_path: PathBuf) -> SexeResult<()> {
     let mut loader = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader.read_to_end(&mut loader_bytes)?;

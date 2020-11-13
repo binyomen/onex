@@ -91,8 +91,8 @@ impl From<StripPrefixError> for SexeError {
     }
 }
 
-pub fn get_app_dir_bytes(app_dir: &str) -> SexeResult<Vec<u8>> {
-    if !Path::new(app_dir).is_dir() {
+pub fn get_app_dir_bytes(app_dir: &Path) -> SexeResult<Vec<u8>> {
+    if !app_dir.is_dir() {
         return Err(ZipError::FileNotFound.into());
     }
 
@@ -103,7 +103,7 @@ pub fn get_app_dir_bytes(app_dir: &str) -> SexeResult<Vec<u8>> {
     for entry_result in WalkDir::new(app_dir) {
         let entry = entry_result?;
         let path = entry.path();
-        let stripped_path = path.strip_prefix(Path::new(app_dir))?;
+        let stripped_path = path.strip_prefix(app_dir)?;
         let name = stripped_path.to_string_lossy();
 
         if path.is_file() {
