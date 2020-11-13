@@ -68,19 +68,25 @@ impl Read for OffsetSeeker {
 }
 
 fn main() {
-    let exe_path = env::current_exe().unwrap();
-    let mut file = File::open(exe_path).unwrap();
+    real_main().unwrap();
+}
 
-    file.seek(SeekFrom::End(-8)).unwrap();
+fn real_main() -> io::Result<()> {
+    let exe_path = env::current_exe()?;
+    let mut file = File::open(exe_path)?;
+
+    file.seek(SeekFrom::End(-8))?;
     let mut data_offset = [0; 8];
-    file.read_exact(&mut data_offset).unwrap();
+    file.read_exact(&mut data_offset)?;
     let data_offset = u64::from_le_bytes(data_offset);
 
-    let file_length = file.metadata().unwrap().len();
+    let file_length = file.metadata()?.len();
     let data_length = file_length - data_offset - 8;
 
-    let seeker = OffsetSeeker::new(file, data_offset, data_length).unwrap();
-    run_app(seeker).unwrap();
+    let seeker = OffsetSeeker::new(file, data_offset, data_length)?;
+    run_app(seeker)?;
+
+    Ok(())
 }
 
 fn run_app(seeker: OffsetSeeker) -> io::Result<()> {
