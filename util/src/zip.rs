@@ -1,11 +1,11 @@
+use crate::result::SexeResult;
+use ::zip::{result::ZipError, write::FileOptions, CompressionMethod, ZipArchive, ZipWriter};
 use std::{
-    fs::File,
+    fs::{create_dir_all, File},
     io::{self, Read, Seek, SeekFrom, Write},
-    path::Path,
+    path::{Path, PathBuf},
 };
-use util::SexeResult;
 use walkdir::{self, WalkDir};
-use zip::{result::ZipError, write::FileOptions, CompressionMethod, ZipWriter};
 
 struct SeekableWriter {
     cursor: usize,
@@ -73,7 +73,7 @@ impl Write for SeekableWriter {
     }
 }
 
-pub fn get_app_dir_bytes(app_dir: &Path) -> SexeResult<Vec<u8>> {
+pub fn zip_app_dir(app_dir: &Path) -> SexeResult<Vec<u8>> {
     if !app_dir.is_dir() {
         return Err(ZipError::FileNotFound.into());
     }
@@ -103,6 +103,30 @@ pub fn get_app_dir_bytes(app_dir: &Path) -> SexeResult<Vec<u8>> {
 
     drop(zip);
     Ok(output_bytes.to_vec())
+}
+
+pub fn extract_zip<S: Read + Seek>(seeker: S, output_path: &Path) -> SexeResult<()> {
+    let mut archive = ZipArchive::new(seeker)?;
+
+    for i in 0..archive.len() {
+        let mut entry = archive.by_index(i)?;
+        let entry_output_path: PathBuf =
+            [output_path, &PathBuf::from(entry.name())].iter().collect();
+
+        if entry.is_file() {
+            let parent = entry_output_path.parent().unwrap();
+            if !parent.exists() {
+                create_dir_all(&parent)?;
+            }
+
+            let mut output_file = File::create(&entry_output_path)?;
+            io::copy(&mut entry, &mut output_file)?;
+        } else {
+            create_dir_all(&entry_output_path)?;
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

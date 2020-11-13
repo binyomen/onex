@@ -1,19 +1,16 @@
-mod zip_util;
-
 use std::{
     fs::File,
     io::{self, Read, Seek, SeekFrom, Write},
     path::PathBuf,
 };
-use util::SexeResult;
-use zip_util::get_app_dir_bytes;
+use util::{zip_app_dir, SexeResult};
 
 pub fn package_app(loader_path: PathBuf, app_dir: PathBuf, output_path: PathBuf) -> SexeResult<()> {
     let mut loader_file = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;
 
-    let app_dir_bytes = get_app_dir_bytes(&app_dir)?;
+    let app_dir_bytes = zip_app_dir(&app_dir)?;
     let output = get_output_bytes(loader_bytes, app_dir_bytes);
 
     let mut output_file = File::create(&output_path)?;

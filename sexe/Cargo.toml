@@ -7,5 +7,3 @@ edition = "2018"
 [dependencies]
 structopt = "0.3.20"
 util = { path = "../util" }
-walkdir = "2.3.1"
-zip = { version = "0.5.8", default-features = false }
