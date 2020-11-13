@@ -5,8 +5,13 @@ use std::{
     io::{self, Read, Seek, SeekFrom},
     path::PathBuf,
     process::Command,
+    ptr,
 };
 use uuid::Uuid;
+use winapi::um::{
+    wincon::GetConsoleWindow,
+    winuser::{ShowWindow, SW_HIDE},
+};
 use zip::ZipArchive;
 
 struct OffsetSeeker {
@@ -72,6 +77,13 @@ fn main() {
 }
 
 fn real_main() -> io::Result<()> {
+    // When a packaged app is run from the start menu, a console window is
+    // created for the loader. When it's a GUI app, the console window stays
+    // open while the GUI stays open. And if you close the console window
+    // before closing the app itself, the loader exits and won't clean up after
+    // itself. Hide the console window so this isn't an issue.
+    hide_console_window();
+
     let exe_path = env::current_exe()?;
     let mut file = File::open(exe_path)?;
 
@@ -87,6 +99,15 @@ fn real_main() -> io::Result<()> {
     run_app(seeker)?;
 
     Ok(())
+}
+
+fn hide_console_window() {
+    let window = unsafe { GetConsoleWindow() };
+    if window != ptr::null_mut() {
+        unsafe {
+            ShowWindow(window, SW_HIDE);
+        }
+    }
 }
 
 fn run_app(seeker: OffsetSeeker) -> io::Result<()> {
