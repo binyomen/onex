@@ -23,6 +23,20 @@ enum Subcommand {
         #[structopt(parse(from_os_str))]
         output_path: PathBuf,
     },
+    /// swap out a loader in one packed app for another
+    Swap {
+        /// the packaged app you want to modify
+        #[structopt(parse(from_os_str))]
+        app_path: PathBuf,
+
+        /// the new sexe_loader.exe file
+        #[structopt(parse(from_os_str))]
+        loader_path: PathBuf,
+
+        /// the final packaged exe to be generated (default modify in place)
+        #[structopt(parse(from_os_str))]
+        output_path: Option<PathBuf>,
+    },
 }
 
 fn main() {
@@ -32,6 +46,12 @@ fn main() {
             loader_path,
             app_dir,
             output_path,
-        } => sexe::package_app(loader_path, app_dir, output_path).unwrap(),
+        } => sexe::package_app(loader_path, app_dir, output_path),
+        Subcommand::Swap {
+            app_path,
+            loader_path,
+            output_path,
+        } => sexe::swap_app_loader(app_path, loader_path, output_path),
     }
+    .unwrap();
 }
