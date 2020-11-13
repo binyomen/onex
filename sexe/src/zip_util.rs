@@ -1,9 +1,9 @@
-use crate::{SexeError, SexeResult};
 use std::{
     fs::File,
     io::{self, Read, Seek, SeekFrom, Write},
-    path::{Path, StripPrefixError},
+    path::Path,
 };
+use util::SexeResult;
 use walkdir::{self, WalkDir};
 use zip::{result::ZipError, write::FileOptions, CompressionMethod, ZipWriter};
 
@@ -70,24 +70,6 @@ impl Write for SeekableWriter {
 
     fn flush(&mut self) -> io::Result<()> {
         Ok(())
-    }
-}
-
-impl From<ZipError> for SexeError {
-    fn from(err: ZipError) -> Self {
-        SexeError::Zip(err)
-    }
-}
-
-impl From<walkdir::Error> for SexeError {
-    fn from(err: walkdir::Error) -> Self {
-        SexeError::Walkdir(err)
-    }
-}
-
-impl From<StripPrefixError> for SexeError {
-    fn from(err: StripPrefixError) -> Self {
-        SexeError::StripPrefix(err)
     }
 }
 
