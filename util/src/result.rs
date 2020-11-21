@@ -27,6 +27,7 @@ pub enum SexeError {
     Zip(ZipError),
     Walkdir(walkdir::Error),
     StripPrefix(StripPrefixError),
+    CtrlC(ctrlc::Error),
 }
 
 impl fmt::Display for SexeError {
@@ -37,6 +38,7 @@ impl fmt::Display for SexeError {
             SexeError::Zip(err) => err.fmt(f),
             SexeError::Walkdir(err) => err.fmt(f),
             SexeError::StripPrefix(err) => err.fmt(f),
+            SexeError::CtrlC(err) => err.fmt(f),
         }
     }
 }
@@ -49,6 +51,7 @@ impl error::Error for SexeError {
             SexeError::Zip(err) => Some(err),
             SexeError::Walkdir(err) => Some(err),
             SexeError::StripPrefix(err) => Some(err),
+            SexeError::CtrlC(err) => Some(err),
         }
     }
 }
@@ -88,6 +91,12 @@ impl From<walkdir::Error> for SexeError {
 impl From<StripPrefixError> for SexeError {
     fn from(err: StripPrefixError) -> Self {
         SexeError::StripPrefix(err)
+    }
+}
+
+impl From<ctrlc::Error> for SexeError {
+    fn from(err: ctrlc::Error) -> Self {
+        SexeError::CtrlC(err)
     }
 }
 

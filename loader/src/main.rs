@@ -25,6 +25,7 @@ fn real_main() -> SexeResult<()> {
     // before closing the app itself, the loader exits and won't clean up after
     // itself. Hide the console window so this isn't an issue.
     hide_console_window();
+    ctrlc::set_handler(|| {})?;
 
     let exe_path = env::current_exe()?;
     let mut file = SexeFile::new(File::open(exe_path)?)?;
