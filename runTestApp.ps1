@@ -1,6 +1,7 @@
 Push-Location $PSScriptRoot
 try {
     cargo build
+    cargo clippy --all-targets --all-features -- -D warnings
     if (Test-Path .\target\testapp) {
         Remove-Item -Recurse .\target\testapp
     }

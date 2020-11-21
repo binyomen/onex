@@ -22,7 +22,7 @@ impl SeekableWriter {
         }
     }
 
-    fn to_vec(self) -> Vec<u8> {
+    fn into_vec(self) -> Vec<u8> {
         self.vec
     }
 
@@ -104,7 +104,7 @@ pub fn zip_app_dir(app_dir: &Path) -> SexeResult<Vec<u8>> {
     zip.finish()?;
 
     drop(zip);
-    Ok(output_bytes.to_vec())
+    Ok(output_bytes.into_vec())
 }
 
 pub fn extract_zip<S: Read + Seek>(seeker: S, output_path: &Path) -> SexeResult<()> {
@@ -195,7 +195,7 @@ mod tests {
         s.write_all(b"g").unwrap();
 
         assert_eq!(
-            s.to_vec()
+            s.into_vec()
                 .into_iter()
                 .map(|b| b.into())
                 .collect::<Vec<char>>(),

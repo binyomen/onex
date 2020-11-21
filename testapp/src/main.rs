@@ -5,7 +5,7 @@ fn main() {
     for arg in env::args() {
         print!("\"{}\" ", arg);
     }
-    println!("");
+    println!();
 
     println!("Directory contents:");
     let exe_path = env::current_exe().unwrap();

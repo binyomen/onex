@@ -5,7 +5,6 @@ use {
         io::{Read, Seek},
         path::PathBuf,
         process::Command,
-        ptr,
     },
     util::{extract_zip, SexeFile, SexeResult},
     uuid::Uuid,
@@ -38,7 +37,7 @@ fn real_main() -> SexeResult<()> {
 
 fn hide_console_window() {
     let window = unsafe { GetConsoleWindow() };
-    if window != ptr::null_mut() {
+    if !window.is_null() {
         unsafe {
             ShowWindow(window, SW_HIDE);
         }
