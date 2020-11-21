@@ -1,16 +1,18 @@
-use std::{
-    env,
-    fs::{self, remove_dir_all, File},
-    io::{Read, Seek, SeekFrom},
-    path::PathBuf,
-    process::Command,
-    ptr,
-};
-use util::{extract_zip, OffsetSeeker, SexeResult};
-use uuid::Uuid;
-use winapi::um::{
-    wincon::GetConsoleWindow,
-    winuser::{ShowWindow, SW_HIDE},
+use {
+    std::{
+        env,
+        fs::{self, remove_dir_all, File},
+        io::{Read, Seek},
+        path::PathBuf,
+        process::Command,
+        ptr,
+    },
+    util::{extract_zip, SexeFile, SexeResult},
+    uuid::Uuid,
+    winapi::um::{
+        wincon::GetConsoleWindow,
+        winuser::{ShowWindow, SW_HIDE},
+    },
 };
 
 fn main() {
@@ -26,17 +28,9 @@ fn real_main() -> SexeResult<()> {
     hide_console_window();
 
     let exe_path = env::current_exe()?;
-    let mut file = File::open(exe_path)?;
+    let mut file = SexeFile::new(File::open(exe_path)?);
 
-    file.seek(SeekFrom::End(-8))?;
-    let mut data_offset = [0; 8];
-    file.read_exact(&mut data_offset)?;
-    let data_offset = u64::from_le_bytes(data_offset);
-
-    let file_length = file.metadata()?.len();
-    let data_length = file_length - data_offset - 8;
-
-    let seeker = OffsetSeeker::new(file, data_offset, data_length)?;
+    let seeker = file.data_accessor()?;
     run_app(seeker)?;
 
     Ok(())
@@ -51,7 +45,7 @@ fn hide_console_window() {
     }
 }
 
-fn run_app(seeker: OffsetSeeker) -> SexeResult<()> {
+fn run_app(seeker: impl Read + Seek) -> SexeResult<()> {
     let mut uuid_buffer = Uuid::encode_buffer();
     let instance_id = Uuid::new_v4()
         .to_hyphenated()
