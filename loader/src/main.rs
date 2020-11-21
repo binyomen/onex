@@ -49,9 +49,8 @@ fn run_app(seeker: impl Read + Seek) -> SexeResult<()> {
     let instance_id = Uuid::new_v4()
         .to_hyphenated()
         .encode_lower(&mut uuid_buffer);
-    let temp_dir: PathBuf = [env::temp_dir(), PathBuf::from(instance_id.to_owned())]
-        .iter()
-        .collect();
+    let dir_name = format!("sexe_{}", instance_id);
+    let temp_dir: PathBuf = [env::temp_dir(), PathBuf::from(dir_name)].iter().collect();
     let temp_dir = scopeguard::guard(temp_dir, |d| {
         let _ = remove_dir_all(d);
     });
