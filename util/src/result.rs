@@ -4,7 +4,25 @@ use {
 };
 
 #[derive(Debug)]
+pub struct SexeErrorInternal {
+    msg: String,
+}
+
+impl fmt::Display for SexeErrorInternal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.msg.fmt(f)
+    }
+}
+
+impl error::Error for SexeErrorInternal {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
+    }
+}
+
+#[derive(Debug)]
 pub enum SexeError {
+    Sexe(SexeErrorInternal),
     Io(io::Error),
     Zip(ZipError),
     Walkdir(walkdir::Error),
@@ -14,6 +32,7 @@ pub enum SexeError {
 impl fmt::Display for SexeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            SexeError::Sexe(err) => err.fmt(f),
             SexeError::Io(err) => err.fmt(f),
             SexeError::Zip(err) => err.fmt(f),
             SexeError::Walkdir(err) => err.fmt(f),
@@ -25,11 +44,26 @@ impl fmt::Display for SexeError {
 impl error::Error for SexeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            SexeError::Sexe(err) => Some(err),
             SexeError::Io(err) => Some(err),
             SexeError::Zip(err) => Some(err),
             SexeError::Walkdir(err) => Some(err),
             SexeError::StripPrefix(err) => Some(err),
         }
+    }
+}
+
+impl From<&str> for SexeError {
+    fn from(msg: &str) -> Self {
+        SexeError::Sexe(SexeErrorInternal {
+            msg: msg.to_owned(),
+        })
+    }
+}
+
+impl From<SexeErrorInternal> for SexeError {
+    fn from(err: SexeErrorInternal) -> Self {
+        SexeError::Sexe(err)
     }
 }
 

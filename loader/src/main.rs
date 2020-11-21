@@ -28,7 +28,7 @@ fn real_main() -> SexeResult<()> {
     hide_console_window();
 
     let exe_path = env::current_exe()?;
-    let mut file = SexeFile::new(File::open(exe_path)?);
+    let mut file = SexeFile::new(File::open(exe_path)?)?;
 
     let seeker = file.data_accessor()?;
     run_app(seeker)?;

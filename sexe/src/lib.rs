@@ -30,7 +30,7 @@ pub fn swap_app_loader(
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;
 
-    let mut sexe_file = SexeFile::new(File::open(&app_path)?);
+    let mut sexe_file = SexeFile::new(File::open(&app_path)?)?;
     let output = SexeFile::generate_bytes(loader_bytes, sexe_file.data()?);
 
     let output_path = output_path.unwrap_or(app_path);
