@@ -1,5 +1,4 @@
-use std::path::PathBuf;
-use structopt::StructOpt;
+use {std::path::PathBuf, structopt::StructOpt};
 
 #[derive(StructOpt)]
 struct Opt {

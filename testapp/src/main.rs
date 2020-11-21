@@ -1,5 +1,4 @@
-use std::env;
-use walkdir::WalkDir;
+use {std::env, walkdir::WalkDir};
 
 fn main() {
     print!("Args: ");

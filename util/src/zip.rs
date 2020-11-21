@@ -1,11 +1,13 @@
-use crate::result::SexeResult;
-use ::zip::{result::ZipError, write::FileOptions, CompressionMethod, ZipArchive, ZipWriter};
-use std::{
-    fs::{create_dir_all, File},
-    io::{self, Read, Seek, SeekFrom, Write},
-    path::{Path, PathBuf},
+use {
+    crate::result::SexeResult,
+    ::zip::{result::ZipError, write::FileOptions, CompressionMethod, ZipArchive, ZipWriter},
+    std::{
+        fs::{create_dir_all, File},
+        io::{self, Read, Seek, SeekFrom, Write},
+        path::{Path, PathBuf},
+    },
+    walkdir::{self, WalkDir},
 };
-use walkdir::{self, WalkDir};
 
 struct SeekableWriter {
     cursor: usize,

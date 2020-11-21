@@ -1,5 +1,7 @@
-use std::{error, fmt, io, path::StripPrefixError};
-use zip::result::ZipError;
+use {
+    std::{error, fmt, io, path::StripPrefixError},
+    zip::result::ZipError,
+};
 
 #[derive(Debug)]
 pub enum SexeError {
