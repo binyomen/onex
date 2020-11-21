@@ -4,10 +4,10 @@ use {
         io::{Read, Write},
         path::PathBuf,
     },
-    util::{zip_app_dir, SexeFile, SexeResult},
+    util::{zip_app_dir, Result, SexeFile},
 };
 
-pub fn package_app(loader_path: PathBuf, app_dir: PathBuf, output_path: PathBuf) -> SexeResult<()> {
+pub fn package_app(loader_path: PathBuf, app_dir: PathBuf, output_path: PathBuf) -> Result<()> {
     let mut loader_file = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;
@@ -25,7 +25,7 @@ pub fn swap_app_loader(
     app_path: PathBuf,
     loader_path: PathBuf,
     output_path: Option<PathBuf>,
-) -> SexeResult<()> {
+) -> Result<()> {
     let mut loader_file = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;

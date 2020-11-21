@@ -4,25 +4,25 @@ use {
 };
 
 #[derive(Debug)]
-pub struct SexeErrorInternal {
+pub struct ErrorInternal {
     msg: String,
 }
 
-impl fmt::Display for SexeErrorInternal {
+impl fmt::Display for ErrorInternal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.msg.fmt(f)
     }
 }
 
-impl error::Error for SexeErrorInternal {
+impl error::Error for ErrorInternal {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         None
     }
 }
 
 #[derive(Debug)]
-pub enum SexeError {
-    Sexe(SexeErrorInternal),
+pub enum Error {
+    Sexe(ErrorInternal),
     Io(io::Error),
     Zip(ZipError),
     Walkdir(walkdir::Error),
@@ -30,74 +30,74 @@ pub enum SexeError {
     CtrlC(ctrlc::Error),
 }
 
-impl fmt::Display for SexeError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SexeError::Sexe(err) => err.fmt(f),
-            SexeError::Io(err) => err.fmt(f),
-            SexeError::Zip(err) => err.fmt(f),
-            SexeError::Walkdir(err) => err.fmt(f),
-            SexeError::StripPrefix(err) => err.fmt(f),
-            SexeError::CtrlC(err) => err.fmt(f),
+            Error::Sexe(err) => err.fmt(f),
+            Error::Io(err) => err.fmt(f),
+            Error::Zip(err) => err.fmt(f),
+            Error::Walkdir(err) => err.fmt(f),
+            Error::StripPrefix(err) => err.fmt(f),
+            Error::CtrlC(err) => err.fmt(f),
         }
     }
 }
 
-impl error::Error for SexeError {
+impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            SexeError::Sexe(err) => Some(err),
-            SexeError::Io(err) => Some(err),
-            SexeError::Zip(err) => Some(err),
-            SexeError::Walkdir(err) => Some(err),
-            SexeError::StripPrefix(err) => Some(err),
-            SexeError::CtrlC(err) => Some(err),
+            Error::Sexe(err) => Some(err),
+            Error::Io(err) => Some(err),
+            Error::Zip(err) => Some(err),
+            Error::Walkdir(err) => Some(err),
+            Error::StripPrefix(err) => Some(err),
+            Error::CtrlC(err) => Some(err),
         }
     }
 }
 
-impl From<&str> for SexeError {
+impl From<&str> for Error {
     fn from(msg: &str) -> Self {
-        SexeError::Sexe(SexeErrorInternal {
+        Error::Sexe(ErrorInternal {
             msg: msg.to_owned(),
         })
     }
 }
 
-impl From<SexeErrorInternal> for SexeError {
-    fn from(err: SexeErrorInternal) -> Self {
-        SexeError::Sexe(err)
+impl From<ErrorInternal> for Error {
+    fn from(err: ErrorInternal) -> Self {
+        Error::Sexe(err)
     }
 }
 
-impl From<io::Error> for SexeError {
+impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
-        SexeError::Io(err)
+        Error::Io(err)
     }
 }
 
-impl From<ZipError> for SexeError {
+impl From<ZipError> for Error {
     fn from(err: ZipError) -> Self {
-        SexeError::Zip(err)
+        Error::Zip(err)
     }
 }
 
-impl From<walkdir::Error> for SexeError {
+impl From<walkdir::Error> for Error {
     fn from(err: walkdir::Error) -> Self {
-        SexeError::Walkdir(err)
+        Error::Walkdir(err)
     }
 }
 
-impl From<StripPrefixError> for SexeError {
+impl From<StripPrefixError> for Error {
     fn from(err: StripPrefixError) -> Self {
-        SexeError::StripPrefix(err)
+        Error::StripPrefix(err)
     }
 }
 
-impl From<ctrlc::Error> for SexeError {
+impl From<ctrlc::Error> for Error {
     fn from(err: ctrlc::Error) -> Self {
-        SexeError::CtrlC(err)
+        Error::CtrlC(err)
     }
 }
 
-pub type SexeResult<T> = Result<T, SexeError>;
+pub type Result<T> = std::result::Result<T, Error>;

@@ -1,5 +1,5 @@
 use {
-    crate::{misc::OffsetSeeker, result::SexeResult},
+    crate::{misc::OffsetSeeker, result::Result},
     std::{
         fs::File,
         io::{Read, Seek, SeekFrom},
@@ -14,7 +14,7 @@ pub struct SexeFile {
 }
 
 impl SexeFile {
-    pub fn new(mut f: File) -> SexeResult<Self> {
+    pub fn new(mut f: File) -> Result<Self> {
         Self::validate(&mut f)?;
         Ok(SexeFile { f })
     }
@@ -38,7 +38,7 @@ impl SexeFile {
         bytes
     }
 
-    pub fn data_offset(&mut self) -> SexeResult<u64> {
+    pub fn data_offset(&mut self) -> Result<u64> {
         self.f.seek(SeekFrom::End(
             -((SIGNATURE.len() + DATA_OFFSET_LENGTH) as i64),
         ))?;
@@ -49,14 +49,14 @@ impl SexeFile {
         Ok(u64::from_le_bytes(data_offset))
     }
 
-    pub fn data(&mut self) -> SexeResult<Vec<u8>> {
+    pub fn data(&mut self) -> Result<Vec<u8>> {
         let mut accessor = self.data_accessor()?;
         let mut data_bytes = Vec::new();
         accessor.read_to_end(&mut data_bytes)?;
         Ok(data_bytes)
     }
 
-    pub fn data_accessor(&mut self) -> SexeResult<impl Read + Seek> {
+    pub fn data_accessor(&mut self) -> Result<impl Read + Seek> {
         self.f.seek(SeekFrom::Start(0))?;
         Ok(OffsetSeeker::new(
             self.f.try_clone()?,
@@ -65,7 +65,7 @@ impl SexeFile {
         )?)
     }
 
-    fn validate(f: &mut File) -> SexeResult<()> {
+    fn validate(f: &mut File) -> Result<()> {
         f.seek(SeekFrom::End(-(SIGNATURE.len() as i64)))?;
 
         let mut signature = String::new();
@@ -78,11 +78,11 @@ impl SexeFile {
         }
     }
 
-    fn file_length(&self) -> SexeResult<u64> {
+    fn file_length(&self) -> Result<u64> {
         Ok(self.f.metadata()?.len())
     }
 
-    fn data_length(&mut self) -> SexeResult<u64> {
+    fn data_length(&mut self) -> Result<u64> {
         Ok(self.file_length()?
             - self.data_offset()?
             - SIGNATURE.len() as u64

@@ -6,6 +6,6 @@ mod zip;
 pub use crate::{
     file::SexeFile,
     misc::OffsetSeeker,
-    result::{SexeError, SexeResult},
+    result::{Error, Result},
     zip::{extract_zip, zip_app_dir},
 };

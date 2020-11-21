@@ -6,7 +6,7 @@ use {
         path::PathBuf,
         process::Command,
     },
-    util::{extract_zip, SexeFile, SexeResult},
+    util::{extract_zip, Result, SexeFile},
     uuid::Uuid,
     winapi::um::{
         wincon::GetConsoleWindow,
@@ -18,7 +18,7 @@ fn main() {
     real_main().unwrap();
 }
 
-fn real_main() -> SexeResult<()> {
+fn real_main() -> Result<()> {
     // When a packaged app is run from the start menu, a console window is
     // created for the loader. When it's a GUI app, the console window stays
     // open while the GUI stays open. And if you close the console window
@@ -45,7 +45,7 @@ fn hide_console_window() {
     }
 }
 
-fn run_app(seeker: impl Read + Seek) -> SexeResult<()> {
+fn run_app(seeker: impl Read + Seek) -> Result<()> {
     let mut uuid_buffer = Uuid::encode_buffer();
     let instance_id = Uuid::new_v4()
         .to_hyphenated()

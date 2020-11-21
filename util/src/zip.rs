@@ -1,5 +1,5 @@
 use {
-    crate::result::SexeResult,
+    crate::result::Result,
     ::zip::{result::ZipError, write::FileOptions, CompressionMethod, ZipArchive, ZipWriter},
     std::{
         fs::{create_dir_all, File},
@@ -75,7 +75,7 @@ impl Write for SeekableWriter {
     }
 }
 
-pub fn zip_app_dir(app_dir: &Path) -> SexeResult<Vec<u8>> {
+pub fn zip_app_dir(app_dir: &Path) -> Result<Vec<u8>> {
     if !app_dir.is_dir() {
         return Err(ZipError::FileNotFound.into());
     }
@@ -107,7 +107,7 @@ pub fn zip_app_dir(app_dir: &Path) -> SexeResult<Vec<u8>> {
     Ok(output_bytes.into_vec())
 }
 
-pub fn extract_zip<S: Read + Seek>(seeker: S, output_path: &Path) -> SexeResult<()> {
+pub fn extract_zip<S: Read + Seek>(seeker: S, output_path: &Path) -> Result<()> {
     let mut archive = ZipArchive::new(seeker)?;
 
     for i in 0..archive.len() {
