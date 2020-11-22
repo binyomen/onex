@@ -10,7 +10,7 @@ on:
     - cron: '0 0 * * *'  # every day at midnight
 
 jobs:
-  build:
+  audit:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
