@@ -1,4 +1,4 @@
-name: action
+name: build
 
 defaults:
   run:
@@ -46,11 +46,6 @@ jobs:
       with:
         command: fmt
         args: -- --check
-
-    - name: Security audit
-      uses: actions-rs/audit-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Run runTestApp.ps1
       run: .\runTestApp.ps1

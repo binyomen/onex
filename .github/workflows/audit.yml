@@ -1,0 +1,27 @@
+name: audit
+
+defaults:
+  run:
+    shell: pwsh
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # every day at midnight
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        components: rustfmt, clippy
+
+    - name: Security audit
+      uses: actions-rs/audit-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
