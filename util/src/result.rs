@@ -28,7 +28,6 @@ pub enum Error {
     Zip(ZipError),
     Walkdir(walkdir::Error),
     StripPrefix(StripPrefixError),
-    CtrlC(ctrlc::Error),
 }
 
 impl From<&str> for Error {
