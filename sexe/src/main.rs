@@ -36,6 +36,12 @@ enum Subcommand {
         #[structopt(parse(from_os_str))]
         output_path: Option<PathBuf>,
     },
+    /// List the contents of a sexe app
+    List {
+        /// the packaged app you want to list the contents of
+        #[structopt(parse(from_os_str))]
+        app_path: PathBuf,
+    },
 }
 
 fn main() {
@@ -51,6 +57,7 @@ fn main() {
             loader_path,
             output_path,
         } => sexe::swap_app_loader(app_path, loader_path, output_path),
+        Subcommand::List { app_path } => sexe::list_app_contents(app_path),
     }
     .unwrap();
 }

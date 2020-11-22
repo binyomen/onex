@@ -12,10 +12,13 @@ try {
 
     cargo run -p sexe -- pack .\target\debug\sexe_loader.exe .\target\testapp .\target\testapp_packaged.exe
     .\target\testapp_packaged.exe arg1 arg2 arg3
+
     cargo run -p sexe -- swap .\target\testapp_packaged.exe .\target\debug\sexe_loader.exe .\target\testapp_packaged.exe
     .\target\testapp_packaged.exe arg1 arg2 arg3
     cargo run -p sexe -- swap .\target\testapp_packaged.exe .\target\debug\sexe_loader.exe
     .\target\testapp_packaged.exe arg1 arg2 arg3
+
+    cargo run -p sexe -- list .\target\testapp_packaged.exe
 } finally {
     Pop-Location
 }

@@ -131,6 +131,23 @@ pub fn extract_zip<S: Read + Seek>(seeker: S, output_path: &Path) -> Result<()> 
     Ok(())
 }
 
+pub fn list_zip_contents<S: Read + Seek>(seeker: S) -> Result<()> {
+    let mut archive = ZipArchive::new(seeker)?;
+
+    for i in 0..archive.len() {
+        let entry = archive.by_index(i)?;
+        let name = entry.name().replace("/", "\\");
+        println!(
+            "{} ({}/{} bytes compressed/uncompressed)",
+            name,
+            entry.compressed_size(),
+            entry.size()
+        );
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
