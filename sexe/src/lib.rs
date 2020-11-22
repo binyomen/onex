@@ -4,7 +4,7 @@ use {
         io::{Read, Write},
         path::PathBuf,
     },
-    util::{list_zip_contents, zip_app_dir, Result, SexeFile},
+    util::{extract_zip, list_zip_contents, zip_app_dir, Result, SexeFile},
 };
 
 pub fn package_app(loader_path: PathBuf, app_dir: PathBuf, output_path: PathBuf) -> Result<()> {
@@ -43,5 +43,11 @@ pub fn swap_app_loader(
 pub fn list_app_contents(app_path: PathBuf) -> Result<()> {
     let mut sexe_file = SexeFile::new(File::open(&app_path)?)?;
     list_zip_contents(sexe_file.data_accessor()?)?;
+    Ok(())
+}
+
+pub fn extract_app_contents(app_path: PathBuf, output_path: PathBuf) -> Result<()> {
+    let mut sexe_file = SexeFile::new(File::open(&app_path)?)?;
+    extract_zip(sexe_file.data_accessor()?, &output_path)?;
     Ok(())
 }

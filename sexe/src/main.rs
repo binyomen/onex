@@ -42,6 +42,17 @@ enum Subcommand {
         #[structopt(parse(from_os_str))]
         app_path: PathBuf,
     },
+
+    /// Extract the contents of a sexe app
+    Extract {
+        /// the packaged app you want to extract the contents of
+        #[structopt(parse(from_os_str))]
+        app_path: PathBuf,
+
+        /// the directory to extract to
+        #[structopt(parse(from_os_str))]
+        output_path: PathBuf,
+    },
 }
 
 fn main() {
@@ -58,6 +69,10 @@ fn main() {
             output_path,
         } => sexe::swap_app_loader(app_path, loader_path, output_path),
         Subcommand::List { app_path } => sexe::list_app_contents(app_path),
+        Subcommand::Extract {
+            app_path,
+            output_path,
+        } => sexe::extract_app_contents(app_path, output_path),
     }
     .unwrap();
 }
