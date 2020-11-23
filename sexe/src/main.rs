@@ -1,4 +1,8 @@
-use {std::path::PathBuf, structopt::StructOpt};
+use {
+    std::{path::PathBuf, process},
+    structopt::StructOpt,
+    util::Result,
+};
 
 #[derive(StructOpt)]
 struct Opt {
@@ -36,6 +40,7 @@ enum Subcommand {
         #[structopt(parse(from_os_str))]
         output_path: Option<PathBuf>,
     },
+
     /// List the contents of a sexe app
     List {
         /// the packaged app you want to list the contents of
@@ -53,26 +58,42 @@ enum Subcommand {
         #[structopt(parse(from_os_str))]
         output_path: PathBuf,
     },
+
+    /// Succeeds if the given file is a sexe app, fails otherwise
+    Check {
+        /// the packaged app you want to check
+        #[structopt(parse(from_os_str))]
+        app_path: PathBuf,
+    },
 }
 
-fn main() {
+fn main() -> Result<()> {
     let opt = Opt::from_args();
-    match opt.subcommand {
+    let exit_code = match opt.subcommand {
         Subcommand::Pack {
             loader_path,
             app_dir,
             output_path,
-        } => sexe::package_app(loader_path, app_dir, output_path),
+        } => sexe::package_app(loader_path, app_dir, output_path).map(|_| 0),
         Subcommand::Swap {
             app_path,
             loader_path,
             output_path,
-        } => sexe::swap_app_loader(app_path, loader_path, output_path),
-        Subcommand::List { app_path } => sexe::list_app_contents(app_path),
+        } => sexe::swap_app_loader(app_path, loader_path, output_path).map(|_| 0),
+        Subcommand::List { app_path } => sexe::list_app_contents(app_path).map(|_| 0),
         Subcommand::Extract {
             app_path,
             output_path,
-        } => sexe::extract_app_contents(app_path, output_path),
-    }
-    .unwrap();
+        } => sexe::extract_app_contents(app_path, output_path).map(|_| 0),
+        Subcommand::Check { app_path } => {
+            if sexe::check_app(app_path)? {
+                Ok(0)
+            } else {
+                eprintln!("This is not a sexe app.");
+                Ok(1)
+            }
+        }
+    }?;
+
+    process::exit(exit_code);
 }

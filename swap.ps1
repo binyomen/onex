@@ -9,7 +9,7 @@ try {
     cargo build
     cargo clippy --all-targets --all-features -- -D warnings
     Write-Host "Swapping $Target..."
-    cargo run -p sexe -- swap $Target .\target\debug\sexe_loader.exe
+    .\target\debug\sexe.exe swap $Target .\target\debug\sexe_loader.exe
     Write-Host "Done."
 } finally {
     Pop-Location

@@ -51,3 +51,8 @@ pub fn extract_app_contents(app_path: PathBuf, output_path: PathBuf) -> Result<(
     extract_zip(sexe_file.data_accessor()?, &output_path)?;
     Ok(())
 }
+
+pub fn check_app(app_path: PathBuf) -> Result<bool> {
+    let mut file = File::open(&app_path)?;
+    Ok(SexeFile::validate(&mut file).is_ok())
+}

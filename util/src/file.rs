@@ -65,7 +65,7 @@ impl SexeFile {
         )?)
     }
 
-    fn validate(f: &mut File) -> Result<()> {
+    pub fn validate(f: &mut File) -> Result<()> {
         f.seek(SeekFrom::End(-(SIGNATURE.len() as i64)))?;
 
         let mut signature = String::new();
