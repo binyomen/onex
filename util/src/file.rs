@@ -56,7 +56,7 @@ impl SexeFile {
         Ok(data_bytes)
     }
 
-    pub fn data_accessor(&mut self) -> Result<impl Read + Seek> {
+    pub fn data_accessor(&mut self) -> Result<OffsetSeeker> {
         self.f.seek(SeekFrom::Start(0))?;
         Ok(OffsetSeeker::new(
             self.f.try_clone()?,

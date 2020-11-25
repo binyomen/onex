@@ -3,11 +3,10 @@ use {
     std::{
         env,
         fs::{self, remove_dir_all, File},
-        io::{Read, Seek},
         path::PathBuf,
         process::Command,
     },
-    util::{Result, SexeFile},
+    util::{OffsetSeeker, Result, SexeFile},
     uuid::Uuid,
     winapi::um::wincon::FreeConsole,
     zip::ZipArchive,
@@ -23,7 +22,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn run_app(seeker: impl Read + Seek) -> Result<()> {
+fn run_app(seeker: OffsetSeeker) -> Result<()> {
     let mut uuid_buffer = Uuid::encode_buffer();
     let instance_id = Uuid::new_v4()
         .to_hyphenated()

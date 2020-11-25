@@ -1,13 +1,15 @@
 use {
+    lazy_static::lazy_static,
     std::{
         ffi::OsString,
-        io::{self, Read, Seek},
+        io,
         iter::once,
         os::windows::ffi::OsStrExt,
         path::Path,
         ptr::{null, null_mut},
+        sync::Mutex,
     },
-    util::Result,
+    util::{OffsetSeeker, Result},
     winapi_local::{
         shared::{
             basetsd::{UINT32, UINT64},
@@ -36,12 +38,32 @@ macro_rules! handle_hresult {
     };
 }
 
-pub struct Provider {
-    handle: PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT,
+struct InstanceHandle(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT);
+unsafe impl Send for InstanceHandle {}
+unsafe impl Sync for InstanceHandle {}
+
+struct ProviderState {
+    handle: InstanceHandle,
+    archive: Option<ZipArchive<OffsetSeeker>>,
 }
 
+impl ProviderState {
+    fn new() -> Self {
+        ProviderState {
+            handle: InstanceHandle(null_mut()),
+            archive: None,
+        }
+    }
+}
+
+lazy_static! {
+    static ref PROVIDER_STATE: Mutex<ProviderState> = Mutex::new(ProviderState::new());
+}
+
+pub struct Provider;
+
 impl Provider {
-    pub fn new<R: Read + Seek>(virt_root: &Path, _archive: ZipArchive<R>) -> Result<Self> {
+    pub fn new(virt_root: &Path, archive: ZipArchive<OffsetSeeker>) -> Result<Self> {
         let instance_id = co_create_guid()?;
         mark_directory_as_placeholder(virt_root, instance_id)?;
 
@@ -49,15 +71,18 @@ impl Provider {
 
         let instance_handle = start_virtualizing(virt_root, callbacks)?;
 
-        Ok(Provider {
-            handle: instance_handle,
-        })
+        let mut state = PROVIDER_STATE.lock()?;
+        state.handle = InstanceHandle(instance_handle);
+        state.archive = Some(archive);
+        Ok(Provider {})
     }
 }
 
 impl Drop for Provider {
     fn drop(&mut self) {
-        stop_virtualizing(self.handle)
+        if let Ok(state) = PROVIDER_STATE.lock() {
+            stop_virtualizing(state.handle.0)
+        }
     }
 }
 

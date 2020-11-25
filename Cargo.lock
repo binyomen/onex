@@ -234,6 +234,7 @@ dependencies = [
 name = "sexe_loader"
 version = "0.1.0"
 dependencies = [
+ "lazy_static",
  "scopeguard",
  "util",
  "uuid",
