@@ -1,6 +1,6 @@
 use {
     lazy_static::lazy_static,
-    log::trace,
+    log::{error, trace},
     std::{
         ffi::OsString,
         io,
@@ -15,7 +15,7 @@ use {
         shared::{
             basetsd::{UINT32, UINT64},
             guiddef::GUID,
-            winerror::{FAILED, S_OK},
+            winerror::{E_FAIL, FAILED, S_OK},
         },
         um::{
             combaseapi::CoCreateGuid,
@@ -37,6 +37,19 @@ macro_rules! handle_hresult {
             return Err(io::Error::from_raw_os_error(r).into());
         }
     };
+}
+
+macro_rules! io_result_to_hresult {
+    ($r:expr) => {{
+        let r = $r;
+        match r {
+            Ok(()) => S_OK,
+            Err(err) => {
+                error!("{}", err);
+                err.raw_os_error().unwrap_or(E_FAIL)
+            }
+        }
+    }};
 }
 
 struct InstanceHandle(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT);
@@ -88,43 +101,85 @@ impl Drop for Provider {
 }
 
 extern "system" fn start_directory_enumeration_cb(
-    _callback_data: *const PRJ_CALLBACK_DATA,
-    _enumeration_id: *const GUID,
+    callback_data: *const PRJ_CALLBACK_DATA,
+    enumeration_id: *const GUID,
 ) -> HRESULT {
     trace!("start_directory_enumeration_cb");
-    S_OK
+    io_result_to_hresult!(start_directory_enumeration_inner(
+        callback_data,
+        enumeration_id
+    ))
 }
-
 extern "system" fn end_directory_enumeration_cb(
-    _callback_data: *const PRJ_CALLBACK_DATA,
-    _enumeration_id: *const GUID,
+    callback_data: *const PRJ_CALLBACK_DATA,
+    enumeration_id: *const GUID,
 ) -> HRESULT {
     trace!("end_directory_enumeration_cb");
-    S_OK
+    io_result_to_hresult!(end_directory_enumeration_inner(
+        callback_data,
+        enumeration_id,
+    ))
+}
+extern "system" fn get_directory_enumeration_cb(
+    callback_data: *const PRJ_CALLBACK_DATA,
+    enumeration_id: *const GUID,
+    search_expression: PCWSTR,
+    dir_entry_buffer_handle: PRJ_DIR_ENTRY_BUFFER_HANDLE,
+) -> HRESULT {
+    trace!("get_directory_enumeration_cb");
+    io_result_to_hresult!(get_directory_enumeration_inner(
+        callback_data,
+        enumeration_id,
+        search_expression,
+        dir_entry_buffer_handle
+    ))
+}
+extern "system" fn get_placeholder_info_cb(callback_data: *const PRJ_CALLBACK_DATA) -> HRESULT {
+    trace!("get_placeholder_info_cb");
+    io_result_to_hresult!(get_placeholder_info_inner(callback_data))
+}
+extern "system" fn get_file_data_cb(
+    callback_data: *const PRJ_CALLBACK_DATA,
+    byte_offset: UINT64,
+    length: UINT32,
+) -> HRESULT {
+    trace!("get_file_data_cb");
+    io_result_to_hresult!(get_file_data_inner(callback_data, byte_offset, length))
 }
 
-extern "system" fn get_directory_enumeration_cb(
+fn start_directory_enumeration_inner(
+    _callback_data: *const PRJ_CALLBACK_DATA,
+    _enumeration_id: *const GUID,
+) -> io::Result<()> {
+    Ok(())
+}
+
+fn end_directory_enumeration_inner(
+    _callback_data: *const PRJ_CALLBACK_DATA,
+    _enumeration_id: *const GUID,
+) -> io::Result<()> {
+    Ok(())
+}
+
+fn get_directory_enumeration_inner(
     _callback_data: *const PRJ_CALLBACK_DATA,
     _enumeration_id: *const GUID,
     _search_expression: PCWSTR,
     _dir_entry_buffer_handle: PRJ_DIR_ENTRY_BUFFER_HANDLE,
-) -> HRESULT {
-    trace!("get_directory_enumeration_cb");
-    S_OK
+) -> io::Result<()> {
+    Ok(())
 }
 
-extern "system" fn get_placeholder_info_cb(_callback_data: *const PRJ_CALLBACK_DATA) -> HRESULT {
-    trace!("get_placeholder_info_cb");
-    S_OK
+fn get_placeholder_info_inner(_callback_data: *const PRJ_CALLBACK_DATA) -> io::Result<()> {
+    Ok(())
 }
 
-extern "system" fn get_file_data_cb(
+fn get_file_data_inner(
     _callback_data: *const PRJ_CALLBACK_DATA,
     _byte_offset: UINT64,
     _length: UINT32,
-) -> HRESULT {
-    trace!("get_file_data_cb");
-    S_OK
+) -> io::Result<()> {
+    Ok(())
 }
 
 fn co_create_guid() -> Result<GUID> {
