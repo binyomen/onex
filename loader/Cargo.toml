@@ -9,3 +9,10 @@ scopeguard = "1.1.0"
 util = { path = "../util" }
 uuid = { version = "0.8.1", features = ["v4"] }
 winapi = { version = "0.3.9", features = ["wincon"] }
+zip = { version = "0.5.8", default-features = false }
+
+[dependencies.winapi_local]
+package = "winapi"
+git = "file://C:/Users/Ben/repos/winapi-rs"
+branch = "projfs"
+features = ["combaseapi", "projectedfslib", "winerror"]
