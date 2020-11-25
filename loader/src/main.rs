@@ -1,5 +1,5 @@
 use {
-    sexe_loader::projfs::{initialize, shut_down},
+    sexe_loader::projfs::Provider,
     std::{
         env,
         fs::{self, remove_dir_all, File},
@@ -36,10 +36,7 @@ fn run_app(seeker: impl Read + Seek) -> Result<()> {
     });
 
     let archive = ZipArchive::new(seeker)?;
-    let instance_handle = initialize(&temp_dir, archive)?;
-    let _instance_handle = scopeguard::guard(instance_handle, |h| {
-        shut_down(h);
-    });
+    let _provider = Provider::new(&temp_dir, archive)?;
 
     let exe_name_file: PathBuf = [&temp_dir, &PathBuf::from("sexe_run")].iter().collect();
     let exe_name = fs::read_to_string(exe_name_file)?.trim().to_owned();

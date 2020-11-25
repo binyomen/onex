@@ -36,6 +36,31 @@ macro_rules! handle_hresult {
     };
 }
 
+pub struct Provider {
+    handle: PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT,
+}
+
+impl Provider {
+    pub fn new<R: Read + Seek>(virt_root: &Path, _archive: ZipArchive<R>) -> Result<Self> {
+        let instance_id = co_create_guid()?;
+        mark_directory_as_placeholder(virt_root, instance_id)?;
+
+        let callbacks = create_callback_table()?;
+
+        let instance_handle = start_virtualizing(virt_root, callbacks)?;
+
+        Ok(Provider {
+            handle: instance_handle,
+        })
+    }
+}
+
+impl Drop for Provider {
+    fn drop(&mut self) {
+        stop_virtualizing(self.handle)
+    }
+}
+
 extern "system" fn start_directory_enumeration_cb(
     _callback_data: *const PRJ_CALLBACK_DATA,
     _enumeration_id: *const GUID,
@@ -69,24 +94,6 @@ extern "system" fn get_file_data_cb(
     _length: UINT32,
 ) -> HRESULT {
     S_OK
-}
-
-pub fn initialize<R: Read + Seek>(
-    virt_root: &Path,
-    _archive: ZipArchive<R>,
-) -> Result<PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT> {
-    let instance_id = co_create_guid()?;
-    mark_directory_as_placeholder(virt_root, instance_id)?;
-
-    let callbacks = create_callback_table()?;
-
-    let instance_handle = start_virtualizing(virt_root, callbacks)?;
-
-    Ok(instance_handle)
-}
-
-pub fn shut_down(instance_handle: PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT) {
-    stop_virtualizing(instance_handle)
 }
 
 fn co_create_guid() -> Result<GUID> {
