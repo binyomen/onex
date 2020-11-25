@@ -1,5 +1,6 @@
 use {
     lazy_static::lazy_static,
+    log::trace,
     std::{
         ffi::OsString,
         io,
@@ -90,6 +91,7 @@ extern "system" fn start_directory_enumeration_cb(
     _callback_data: *const PRJ_CALLBACK_DATA,
     _enumeration_id: *const GUID,
 ) -> HRESULT {
+    trace!("start_directory_enumeration_cb");
     S_OK
 }
 
@@ -97,6 +99,7 @@ extern "system" fn end_directory_enumeration_cb(
     _callback_data: *const PRJ_CALLBACK_DATA,
     _enumeration_id: *const GUID,
 ) -> HRESULT {
+    trace!("end_directory_enumeration_cb");
     S_OK
 }
 
@@ -106,10 +109,12 @@ extern "system" fn get_directory_enumeration_cb(
     _search_expression: PCWSTR,
     _dir_entry_buffer_handle: PRJ_DIR_ENTRY_BUFFER_HANDLE,
 ) -> HRESULT {
+    trace!("get_directory_enumeration_cb");
     S_OK
 }
 
 extern "system" fn get_placeholder_info_cb(_callback_data: *const PRJ_CALLBACK_DATA) -> HRESULT {
+    trace!("get_placeholder_info_cb");
     S_OK
 }
 
@@ -118,6 +123,7 @@ extern "system" fn get_file_data_cb(
     _byte_offset: UINT64,
     _length: UINT32,
 ) -> HRESULT {
+    trace!("get_file_data_cb");
     S_OK
 }
 

@@ -13,6 +13,8 @@ use {
 };
 
 fn main() -> Result<()> {
+    enable_logging();
+
     let exe_path = env::current_exe()?;
     let mut file = SexeFile::new(File::open(exe_path)?)?;
 
@@ -49,3 +51,17 @@ fn run_app(seeker: OffsetSeeker) -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(debug_assertions)]
+fn enable_logging() {
+    flexi_logger::Logger::with_str("trace")
+        .log_to_file()
+        .directory(env::temp_dir())
+        .discriminant("sexe")
+        .print_message()
+        .start()
+        .unwrap();
+}
+
+#[cfg(not(debug_assertions))]
+fn enable_logging() {}

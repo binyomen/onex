@@ -5,7 +5,9 @@ authors = ["Ben Weedon <ben@weedon.email>"]
 edition = "2018"
 
 [dependencies]
+flexi_logger = { version = "0.16.2", default-features = false }
 lazy_static = "1.4.0"
+log = "0.4.11"
 scopeguard = "1.1.0"
 util = { path = "../util" }
 uuid = { version = "0.8.1", features = ["v4"] }
