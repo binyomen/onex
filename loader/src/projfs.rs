@@ -5,7 +5,7 @@ use {
         error,
         ffi::OsString,
         fmt, io, iter, mem,
-        os::windows::ffi::OsStrExt,
+        os::windows::ffi::{OsStrExt, OsStringExt},
         path::Path,
         ptr, slice,
         sync::{Mutex, PoisonError},
@@ -155,7 +155,6 @@ extern "system" fn start_directory_enumeration_cb(
     callback_data: *const PRJ_CALLBACK_DATA,
     enumeration_id: *const GUID,
 ) -> HRESULT {
-    trace!("start_directory_enumeration_cb");
     report_hresult(start_directory_enumeration_inner(
         callback_data,
         enumeration_id,
@@ -165,7 +164,6 @@ extern "system" fn end_directory_enumeration_cb(
     callback_data: *const PRJ_CALLBACK_DATA,
     enumeration_id: *const GUID,
 ) -> HRESULT {
-    trace!("end_directory_enumeration_cb");
     report_hresult(end_directory_enumeration_inner(
         callback_data,
         enumeration_id,
@@ -177,7 +175,6 @@ extern "system" fn get_directory_enumeration_cb(
     search_expression: PCWSTR,
     dir_entry_buffer_handle: PRJ_DIR_ENTRY_BUFFER_HANDLE,
 ) -> HRESULT {
-    trace!("get_directory_enumeration_cb");
     report_hresult(get_directory_enumeration_inner(
         callback_data,
         enumeration_id,
@@ -186,7 +183,6 @@ extern "system" fn get_directory_enumeration_cb(
     ))
 }
 extern "system" fn get_placeholder_info_cb(callback_data: *const PRJ_CALLBACK_DATA) -> HRESULT {
-    trace!("get_placeholder_info_cb");
     report_hresult(get_placeholder_info_inner(callback_data))
 }
 extern "system" fn get_file_data_cb(
@@ -194,7 +190,6 @@ extern "system" fn get_file_data_cb(
     byte_offset: UINT64,
     length: UINT32,
 ) -> HRESULT {
-    trace!("get_file_data_cb");
     report_hresult(get_file_data_inner(callback_data, byte_offset, length))
 }
 
@@ -202,6 +197,7 @@ fn start_directory_enumeration_inner(
     _callback_data: *const PRJ_CALLBACK_DATA,
     _enumeration_id: *const GUID,
 ) -> HresultResult {
+    trace!("start_directory_enumeration_cb");
     Ok(())
 }
 
@@ -209,6 +205,7 @@ fn end_directory_enumeration_inner(
     _callback_data: *const PRJ_CALLBACK_DATA,
     _enumeration_id: *const GUID,
 ) -> HresultResult {
+    trace!("end_directory_enumeration_cb");
     Ok(())
 }
 
@@ -218,13 +215,19 @@ fn get_directory_enumeration_inner(
     _search_expression: PCWSTR,
     _dir_entry_buffer_handle: PRJ_DIR_ENTRY_BUFFER_HANDLE,
 ) -> HresultResult {
+    trace!("get_directory_enumeration_cb");
     Ok(())
 }
 
 fn get_placeholder_info_inner(callback_data: *const PRJ_CALLBACK_DATA) -> HresultResult {
+    let requested_name = unsafe { *callback_data }.FilePathName;
+    trace!(
+        "get_placeholder_info_cb: {:?}",
+        raw_str_to_os_string(requested_name)
+    );
+
     let mut state = PROVIDER_STATE.lock()?;
 
-    let requested_name = unsafe { *callback_data }.FilePathName;
     let file = get_file_from_provided_name(&mut state, requested_name)?;
 
     let placeholder_info = create_placeholder_info(file);
@@ -243,10 +246,17 @@ fn get_file_data_inner(
     _byte_offset: UINT64,
     _length: UINT32,
 ) -> HresultResult {
+    let requested_name = unsafe { *callback_data }.FilePathName;
+    let data_stream_id = unsafe { *callback_data }.DataStreamId;
+    trace!(
+        "get_file_data_cb: {:?}, {}",
+        raw_str_to_os_string(requested_name),
+        format_guid(&data_stream_id)
+    );
+
     let mut state = PROVIDER_STATE.lock()?;
     let handle = state.handle.0;
 
-    let requested_name = unsafe { *callback_data }.FilePathName;
     let mut file = get_file_from_provided_name(&mut state, requested_name)?;
 
     let buffer = unsafe { PrjAllocateAlignedBuffer(handle, file.size() as usize) };
@@ -262,7 +272,7 @@ fn get_file_data_inner(
 
     handle_hresult!(PrjWriteFileData(
         handle,
-        &(*callback_data).DataStreamId,
+        &data_stream_id,
         buffer,
         0, // byteOffset
         file.size() as u32,
@@ -402,4 +412,35 @@ fn to_u16_vec<T: Into<OsString>>(s: T) -> Vec<u16> {
         .encode_wide()
         .chain(iter::once(0))
         .collect::<Vec<u16>>()
+}
+
+fn raw_str_to_os_string(s: *const u16) -> OsString {
+    let len = get_raw_str_length(s);
+    let slice = unsafe { slice::from_raw_parts(s, len) };
+    OsString::from_wide(slice)
+}
+
+fn get_raw_str_length(s: *const u16) -> usize {
+    let mut i = 0;
+    while unsafe { *s.offset(i) } != 0 {
+        i += 1;
+    }
+    i as usize
+}
+
+fn format_guid(g: &GUID) -> String {
+    format!(
+        "{:x}-{:x}-{:x}-{:x}{:x}-{:x}{:x}{:x}{:x}{:x}{:x}",
+        g.Data1,
+        g.Data2,
+        g.Data3,
+        g.Data4[0],
+        g.Data4[1],
+        g.Data4[2],
+        g.Data4[3],
+        g.Data4[4],
+        g.Data4[5],
+        g.Data4[6],
+        g.Data4[7]
+    )
 }
