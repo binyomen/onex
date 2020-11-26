@@ -7,7 +7,7 @@ use {
         fmt, io, iter, mem,
         os::windows::ffi::OsStrExt,
         path::Path,
-        ptr,
+        ptr, slice,
         sync::{Mutex, PoisonError},
     },
     util::{Error, OffsetSeeker, Result},
@@ -16,14 +16,17 @@ use {
             basetsd::{UINT32, UINT64},
             guiddef::GUID,
             ntdef::LARGE_INTEGER,
-            winerror::{ERROR_FILE_NOT_FOUND, E_FAIL, FAILED, HRESULT_FROM_WIN32, S_OK},
+            winerror::{
+                ERROR_FILE_NOT_FOUND, E_FAIL, E_OUTOFMEMORY, FAILED, HRESULT_FROM_WIN32, S_OK,
+            },
         },
         um::{
             combaseapi::CoCreateGuid,
             projectedfslib::{
                 PRJ_PLACEHOLDER_INFO_s1, PRJ_PLACEHOLDER_INFO_s2, PRJ_PLACEHOLDER_INFO_s3,
-                PrjFileNameCompare, PrjMarkDirectoryAsPlaceholder, PrjStartVirtualizing,
-                PrjStopVirtualizing, PrjWritePlaceholderInfo, PRJ_CALLBACKS, PRJ_CALLBACK_DATA,
+                PrjAllocateAlignedBuffer, PrjFileNameCompare, PrjMarkDirectoryAsPlaceholder,
+                PrjStartVirtualizing, PrjStopVirtualizing, PrjWriteFileData,
+                PrjWritePlaceholderInfo, PRJ_CALLBACKS, PRJ_CALLBACK_DATA,
                 PRJ_DIR_ENTRY_BUFFER_HANDLE, PRJ_FILE_BASIC_INFO,
                 PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT, PRJ_PLACEHOLDER_ID_LENGTH,
                 PRJ_PLACEHOLDER_INFO, PRJ_PLACEHOLDER_VERSION_INFO,
@@ -222,36 +225,49 @@ fn get_placeholder_info_inner(callback_data: *const PRJ_CALLBACK_DATA) -> Hresul
     let mut state = PROVIDER_STATE.lock()?;
 
     let requested_name = unsafe { *callback_data }.FilePathName;
-    let name = state
-        .file_names()
-        .find(|name| {
-            let native_name = to_u16_vec(name);
-            let result = unsafe { PrjFileNameCompare(native_name.as_ptr(), requested_name) };
-            result == 0
-        })
-        .map(|n| n.to_owned());
+    let file = get_file_from_provided_name(&mut state, requested_name)?;
 
-    match name {
-        Some(name) => {
-            let file = state.get_file(&name)?;
-            let placeholder_info = create_placeholder_info(file);
-            handle_hresult!(PrjWritePlaceholderInfo(
-                state.handle.0,
-                requested_name,
-                &placeholder_info,
-                mem::size_of::<PRJ_PLACEHOLDER_INFO>() as u32
-            ));
-            Ok(())
-        }
-        None => Err(HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND).into()),
-    }
+    let placeholder_info = create_placeholder_info(file);
+    handle_hresult!(PrjWritePlaceholderInfo(
+        state.handle.0,
+        requested_name,
+        &placeholder_info,
+        mem::size_of::<PRJ_PLACEHOLDER_INFO>() as u32
+    ));
+
+    Ok(())
 }
 
 fn get_file_data_inner(
-    _callback_data: *const PRJ_CALLBACK_DATA,
+    callback_data: *const PRJ_CALLBACK_DATA,
     _byte_offset: UINT64,
     _length: UINT32,
 ) -> HresultResult {
+    let mut state = PROVIDER_STATE.lock()?;
+    let handle = state.handle.0;
+
+    let requested_name = unsafe { *callback_data }.FilePathName;
+    let mut file = get_file_from_provided_name(&mut state, requested_name)?;
+
+    let buffer = unsafe { PrjAllocateAlignedBuffer(handle, file.size() as usize) };
+    if buffer.is_null() {
+        return Err(E_OUTOFMEMORY.into());
+    }
+
+    // Always return the whole file, since we don't have the ability to seek
+    // within a zip file.
+    let mut slice_buffer =
+        unsafe { slice::from_raw_parts_mut(buffer as *mut u8, file.size() as usize) };
+    io::copy(&mut file, &mut slice_buffer)?;
+
+    handle_hresult!(PrjWriteFileData(
+        handle,
+        &(*callback_data).DataStreamId,
+        buffer,
+        0, // byteOffset
+        file.size() as u32,
+    ));
+
     Ok(())
 }
 
@@ -272,8 +288,8 @@ fn mark_directory_as_placeholder(
 ) -> Result<()> {
     handle_hresult!(PrjMarkDirectoryAsPlaceholder(
         to_u16_vec(root_path_name).as_ptr(),
-        ptr::null(),
-        ptr::null(),
+        ptr::null(), // targetPathName
+        ptr::null(), // versionInfo
         &virtualization_instance_id
     ));
     Ok(())
@@ -287,8 +303,8 @@ fn start_virtualizing(
     handle_hresult!(PrjStartVirtualizing(
         to_u16_vec(virtualization_root_path).as_ptr(),
         &callbacks,
-        ptr::null(),
-        ptr::null(),
+        ptr::null(), // instanceContext
+        ptr::null(), // options
         &mut instance_handle
     ));
     Ok(instance_handle)
@@ -296,6 +312,28 @@ fn start_virtualizing(
 
 fn stop_virtualizing(namespace_virtualization_context: PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT) {
     unsafe { PrjStopVirtualizing(namespace_virtualization_context) };
+}
+
+fn get_file_from_provided_name(
+    state: &mut ProviderState,
+    requested_name: PCWSTR,
+) -> std::result::Result<ZipFile, HresultError> {
+    let name = state
+        .file_names()
+        .find(|name| {
+            let native_name = to_u16_vec(name);
+            let result = unsafe { PrjFileNameCompare(native_name.as_ptr(), requested_name) };
+            result == 0
+        })
+        .map(|n| n.to_owned());
+
+    match name {
+        Some(name) => {
+            let file = state.get_file(&name)?;
+            Ok(file)
+        }
+        None => Err(HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND).into()),
+    }
 }
 
 fn create_callback_table() -> Result<PRJ_CALLBACKS> {
