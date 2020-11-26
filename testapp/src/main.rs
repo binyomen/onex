@@ -1,5 +1,7 @@
 use {std::env, walkdir::WalkDir};
 
+/// TODO: Manually read the contents of each file to get the size, and also
+/// report the change time of each file.
 fn main() {
     print!("Args: ");
     for arg in env::args() {
