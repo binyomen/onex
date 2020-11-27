@@ -8,6 +8,7 @@ use {
         os::windows::ffi::{OsStrExt, OsStringExt},
         path::{Path, PathBuf},
         slice,
+        sync::Once,
     },
     util::{zip_app_dir, SeekableVec},
     uuid::Uuid,
@@ -118,8 +119,16 @@ fn read_dir_wildcards(root: &Path, search: &str) -> Vec<String> {
     }
 }
 
+static LOGGING: Once = Once::new();
+fn enable_logging() {
+    LOGGING.call_once(|| {
+        flexi_logger::Logger::with_str("trace").start().unwrap();
+    });
+}
+
 #[test]
 fn can_read_file() {
+    enable_logging();
     let (temp_dir, _provider) = setup();
 
     assert_eq!(read_file(&temp_dir, "file1.txt"), "file1 contents");
@@ -128,6 +137,7 @@ fn can_read_file() {
 
 #[test]
 fn can_enumerate_directory() {
+    enable_logging();
     let (temp_dir, _provider) = setup();
 
     assert_eq!(
