@@ -290,13 +290,21 @@ fn get_directory_enumeration_inner(
                 &mut state,
             );
 
-            for (i, m) in matches.into_iter().enumerate().skip(session.index) {
-                let file = state.get_file(&m)?;
+            for (i, (name, normalized)) in matches.into_iter().enumerate().skip(session.index) {
+                let file = state.get_file(&name)?;
                 let mut basic_info = create_file_basic_info(&file);
-                let name = to_u16_vec(file.name().replace("/", ""));
-                trace!("Returning file {:?}.", raw_str_to_os_string(name.as_ptr()));
+
+                let normalized = to_u16_vec(normalized);
+                trace!(
+                    "Returning file {:?}.",
+                    raw_str_to_os_string(normalized.as_ptr())
+                );
                 let hr = unsafe {
-                    PrjFillDirEntryBuffer(name.as_ptr(), &mut basic_info, dir_entry_buffer_handle)
+                    PrjFillDirEntryBuffer(
+                        normalized.as_ptr(),
+                        &mut basic_info,
+                        dir_entry_buffer_handle,
+                    )
                 };
                 session.index = i + 1;
                 if hr == HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER) {
@@ -485,35 +493,38 @@ fn get_search_expression_matches(
     search_expression: Option<OsString>,
     dir_name: String,
     state: &mut ProviderState,
-) -> Vec<String> {
+) -> Vec<(String, String)> {
     let file_names_in_directory = state
         .file_names()
         .filter(|n| is_in_directory(n, &dir_name))
-        .map(|n| n.to_owned());
-    let mut matches: Vec<String> = match search_expression {
+        .map(|n| (n.to_owned(), normalize_dir_entry(n)));
+    let mut matches: Vec<(String, String)> = match search_expression {
         Some(expr) => {
             let expr_vec = to_u16_vec(&expr);
             if unsafe { PrjDoesNameContainWildCards(expr_vec.as_ptr()) } == TRUE {
                 trace!("Search expression {:?} contains wildcards.", &expr);
                 file_names_in_directory
-                    .filter(|n| {
-                        let n_vec = to_u16_vec(&n);
-                        n.starts_with(&dir_name)
-                            && unsafe { PrjFileNameMatch(n_vec.as_ptr(), expr_vec.as_ptr()) }
-                                == TRUE
+                    .filter(|(_, normalized)| {
+                        let n_vec = to_u16_vec(&normalized);
+                        let result = unsafe { PrjFileNameMatch(n_vec.as_ptr(), expr_vec.as_ptr()) };
+                        result == TRUE
                     })
                     .collect()
             } else {
                 file_names_in_directory
-                    .filter(|n| n.starts_with(&dir_name) && n.ends_with(&os_str_to_string(&expr)))
+                    .filter(|(_, normalized)| {
+                        let n_vec = to_u16_vec(&normalized);
+                        let expr_vec = to_u16_vec(&expr);
+                        let result =
+                            unsafe { PrjFileNameCompare(n_vec.as_ptr(), expr_vec.as_ptr()) };
+                        result == 0
+                    })
                     .collect()
             }
         }
-        None => file_names_in_directory
-            .filter(|n| n.starts_with(&dir_name))
-            .collect(),
+        None => file_names_in_directory.collect(),
     };
-    matches.sort_by(|n1, n2| {
+    matches.sort_by(|(_, n1), (_, n2)| {
         let n1_vec = to_u16_vec(n1);
         let n2_vec = to_u16_vec(n2);
         let result = unsafe { PrjFileNameCompare(n1_vec.as_ptr(), n2_vec.as_ptr()) };
@@ -521,6 +532,14 @@ fn get_search_expression_matches(
     });
 
     matches
+}
+
+fn normalize_dir_entry(n: &str) -> String {
+    PathBuf::from(n)
+        .file_name()
+        .unwrap_or(&OsString::new())
+        .to_string_lossy()
+        .into_owned()
 }
 
 fn is_in_directory(n: &str, dir: &str) -> bool {
@@ -641,4 +660,49 @@ fn format_guid(g: &GUID) -> String {
         g.Data4[6],
         g.Data4[7]
     )
+}
+
+#[cfg(test)]
+mod testing {
+    use super::*;
+
+    #[test]
+    fn is_in_directory_test() {
+        assert!(is_in_directory(r#"a"#, r#""#));
+        assert!(is_in_directory(r#"a\"#, r#""#));
+        assert!(!is_in_directory(r#"a\b"#, r#""#));
+        assert!(!is_in_directory(r#"a\b\"#, r#""#));
+
+        assert!(!is_in_directory(r#"a"#, r#"a"#));
+        assert!(!is_in_directory(r#"a\"#, r#"a"#));
+        assert!(!is_in_directory(r#"a"#, r#"a\"#));
+        assert!(!is_in_directory(r#"a\"#, r#"a\"#));
+
+        assert!(is_in_directory(r#"a\b"#, r#"a"#));
+        assert!(is_in_directory(r#"a\b\"#, r#"a"#));
+        assert!(is_in_directory(r#"a\b"#, r#"a\"#));
+        assert!(is_in_directory(r#"a\b\"#, r#"a\"#));
+        assert!(!is_in_directory(r#"a\b\c"#, r#"a"#));
+        assert!(!is_in_directory(r#"a\b\c\"#, r#"a"#));
+        assert!(!is_in_directory(r#"a\b\c"#, r#"a\"#));
+        assert!(!is_in_directory(r#"a\b\c\"#, r#"a\"#));
+
+        assert!(!is_in_directory(r#"a\b"#, r#"a\b"#));
+        assert!(!is_in_directory(r#"a\b\"#, r#"a\b"#));
+        assert!(!is_in_directory(r#"a\b"#, r#"a\b\"#));
+        assert!(!is_in_directory(r#"a\b\"#, r#"a\b\"#));
+        assert!(!is_in_directory(r#"a"#, r#"a\b"#));
+        assert!(!is_in_directory(r#"a\"#, r#"a\b"#));
+        assert!(!is_in_directory(r#"a"#, r#"a\b\"#));
+        assert!(!is_in_directory(r#"a\"#, r#"a\b\"#));
+
+        assert!(is_in_directory(r#"a\b\c"#, r#"a\b"#));
+        assert!(is_in_directory(r#"a\b\c\"#, r#"a\b"#));
+        assert!(is_in_directory(r#"a\b\c"#, r#"a\b\"#));
+        assert!(is_in_directory(r#"a\b\c\"#, r#"a\b\"#));
+        assert!(!is_in_directory(r#"a\b\c\d"#, r#"a\b"#));
+        assert!(!is_in_directory(r#"a\b\c\d\"#, r#"a\b"#));
+        assert!(!is_in_directory(r#"a\b\c\d"#, r#"a\b\"#));
+        assert!(!is_in_directory(r#"a\b\c\d\"#, r#"a\b\"#));
+    }
 }
