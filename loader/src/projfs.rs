@@ -13,7 +13,7 @@ use {
         os::windows::ffi::{OsStrExt, OsStringExt},
         path::{Path, PathBuf},
         ptr, slice,
-        sync::{Condvar, Mutex, PoisonError},
+        sync::{Mutex, PoisonError},
     },
     util::{Error, Result},
     winapi_local::{
@@ -141,25 +141,7 @@ impl ProviderState {
 }
 
 lazy_static! {
-    /// Makes sure that only one provider can be running in a process at a time.
-    static ref GLOBAL_LOCK: (Mutex<bool>, Condvar) = (Mutex::new(false), Condvar::new());
-
     static ref PROVIDER_STATE: Mutex<ProviderState> = Mutex::new(ProviderState::new());
-}
-
-fn obtain_global_lock() -> Result<()> {
-    let mut is_locked = GLOBAL_LOCK
-        .1
-        .wait_while(GLOBAL_LOCK.0.lock()?, |is_locked| *is_locked)?;
-    *is_locked = true;
-    Ok(())
-}
-
-fn release_global_lock() -> Result<()> {
-    let mut is_locked = GLOBAL_LOCK.0.lock()?;
-    *is_locked = false;
-    GLOBAL_LOCK.1.notify_all();
-    Ok(())
 }
 
 pub struct Provider {
@@ -168,8 +150,6 @@ pub struct Provider {
 
 impl Provider {
     pub fn new(virt_root: &Path, archive: ZipArchive<Box<dyn ReadSeek>>) -> Result<Self> {
-        obtain_global_lock()?;
-
         let provider = Provider {
             root: virt_root.to_path_buf(),
         };
@@ -196,9 +176,6 @@ impl Drop for Provider {
         match PROVIDER_STATE.lock() {
             Ok(state) => {
                 stop_virtualizing(state.handle.0);
-                if let Err(err) = release_global_lock() {
-                    error!("drop: {}", err);
-                }
 
                 if let Err(err) = fs::remove_dir_all(&self.root) {
                     error!("drop: {}", err);
