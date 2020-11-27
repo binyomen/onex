@@ -67,11 +67,8 @@ pub struct SeekableVec {
 }
 
 impl SeekableVec {
-    pub fn new() -> Self {
-        SeekableVec {
-            cursor: 0,
-            vec: Vec::new(),
-        }
+    pub fn new(vec: Vec<u8>) -> Self {
+        SeekableVec { cursor: 0, vec }
     }
 
     pub fn into_vec(self) -> Vec<u8> {

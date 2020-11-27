@@ -14,7 +14,7 @@ pub fn zip_app_dir(app_dir: &Path) -> Result<Vec<u8>> {
         return Err(ZipError::FileNotFound.into());
     }
 
-    let mut output_bytes = SeekableVec::new();
+    let mut output_bytes = SeekableVec::new(Vec::new());
     let mut zip = ZipWriter::new(&mut output_bytes);
     let options = FileOptions::default().compression_method(CompressionMethod::Stored);
 
