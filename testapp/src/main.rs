@@ -11,10 +11,10 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     println!("Args: {}", arg_string);
 
     println!("Directory contents:");
-    let exe_path = env::current_exe().unwrap();
+    let exe_path = env::current_exe()?;
     let root_dir = exe_path.parent().unwrap();
     for entry in WalkDir::new(root_dir) {
-        let entry = entry.unwrap();
+        let entry = entry?;
         if entry.path().is_file() {
             let mut file = File::open(entry.path())?;
 
