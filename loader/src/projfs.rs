@@ -190,19 +190,23 @@ extern "system" fn start_directory_enumeration_cb(
     callback_data: *const PRJ_CALLBACK_DATA,
     enumeration_id: *const GUID,
 ) -> HRESULT {
-    report_hresult(start_directory_enumeration_inner(
+    let r = report_hresult(start_directory_enumeration_inner(
         callback_data,
         enumeration_id,
-    ))
+    ));
+    trace!("end start_directory_enumeration_cb");
+    r
 }
 extern "system" fn end_directory_enumeration_cb(
     callback_data: *const PRJ_CALLBACK_DATA,
     enumeration_id: *const GUID,
 ) -> HRESULT {
-    report_hresult(end_directory_enumeration_inner(
+    let r = report_hresult(end_directory_enumeration_inner(
         callback_data,
         enumeration_id,
-    ))
+    ));
+    trace!("end end_directory_enumeration_cb");
+    r
 }
 extern "system" fn get_directory_enumeration_cb(
     callback_data: *const PRJ_CALLBACK_DATA,
@@ -210,22 +214,28 @@ extern "system" fn get_directory_enumeration_cb(
     search_expression: PCWSTR,
     dir_entry_buffer_handle: PRJ_DIR_ENTRY_BUFFER_HANDLE,
 ) -> HRESULT {
-    report_hresult(get_directory_enumeration_inner(
+    let r = report_hresult(get_directory_enumeration_inner(
         callback_data,
         enumeration_id,
         search_expression,
         dir_entry_buffer_handle,
-    ))
+    ));
+    trace!("end get_directory_enumeration_cb");
+    r
 }
 extern "system" fn get_placeholder_info_cb(callback_data: *const PRJ_CALLBACK_DATA) -> HRESULT {
-    report_hresult(get_placeholder_info_inner(callback_data))
+    let r = report_hresult(get_placeholder_info_inner(callback_data));
+    trace!("end get_placeholder_info_cb");
+    r
 }
 extern "system" fn get_file_data_cb(
     callback_data: *const PRJ_CALLBACK_DATA,
     byte_offset: UINT64,
     length: UINT32,
 ) -> HRESULT {
-    report_hresult(get_file_data_inner(callback_data, byte_offset, length))
+    let r = report_hresult(get_file_data_inner(callback_data, byte_offset, length));
+    trace!("end get_file_data_cb");
+    r
 }
 
 fn start_directory_enumeration_inner(
