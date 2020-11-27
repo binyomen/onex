@@ -24,6 +24,9 @@ jobs:
         toolchain: stable
         components: rustfmt, clippy
 
+    - name: Enable ProjFS
+      run: Enable-WindowsOptionalFeature -Online -FeatureName Client-ProjFS -NoRestart
+
     - name: Debug build
       uses: actions-rs/cargo@v1
       with:
