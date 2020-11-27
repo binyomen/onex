@@ -38,7 +38,7 @@ use {
                 PRJ_FILE_BASIC_INFO, PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT,
                 PRJ_PLACEHOLDER_ID_LENGTH, PRJ_PLACEHOLDER_INFO, PRJ_PLACEHOLDER_VERSION_INFO,
             },
-            winnt::{FILE_ATTRIBUTE_DIRECTORY, FILE_ATTRIBUTE_READONLY, HRESULT, PCWSTR},
+            winnt::{FILE_ATTRIBUTE_DIRECTORY, FILE_ATTRIBUTE_NORMAL, HRESULT, PCWSTR},
         },
     },
     zip::read::{ZipArchive, ZipFile},
@@ -193,11 +193,19 @@ impl Provider {
 
 impl Drop for Provider {
     fn drop(&mut self) {
-        if let Ok(state) = PROVIDER_STATE.lock() {
-            stop_virtualizing(state.handle.0);
-            let _ = release_global_lock();
+        match PROVIDER_STATE.lock() {
+            Ok(state) => {
+                stop_virtualizing(state.handle.0);
+                if let Err(err) = release_global_lock() {
+                    error!("drop: {}", err);
+                }
+
+                if let Err(err) = fs::remove_dir_all(&self.root) {
+                    error!("drop: {}", err);
+                }
+            }
+            Err(err) => error!("drop: {}", err),
         }
-        let _ = fs::remove_dir_all(&self.root);
     }
 }
 
@@ -634,7 +642,9 @@ fn create_file_basic_info(file: &ZipFile) -> PRJ_FILE_BASIC_INFO {
     let attrs = if file.is_dir() {
         FILE_ATTRIBUTE_DIRECTORY
     } else {
-        FILE_ATTRIBUTE_READONLY
+        // TODO: Find a way for this to be FILE_ATTRIBUTE_READONLY and still be
+        // able to delete the directory contents.
+        FILE_ATTRIBUTE_NORMAL
     };
 
     let large_int_zero = unsafe { mem::zeroed::<LARGE_INTEGER>() };
