@@ -19,3 +19,9 @@ package = "winapi"
 git = "file://C:/Users/Ben/repos/winapi-rs"
 branch = "projfs"
 features = ["combaseapi", "projectedfslib", "winerror"]
+
+[dev-dependencies.winapi_local]
+package = "winapi"
+git = "file://C:/Users/Ben/repos/winapi-rs"
+branch = "projfs"
+features = ["combaseapi", "projectedfslib", "winerror", "fileapi", "handleapi"]
