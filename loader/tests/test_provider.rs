@@ -5,7 +5,13 @@ use {
     zip::ZipArchive,
 };
 
+fn enable_logging() {
+    flexi_logger::Logger::with_str("trace").start().unwrap();
+}
+
 fn main() -> Result<(), Box<dyn error::Error>> {
+    enable_logging();
+
     let mut args = env::args();
     let root = args.nth(1).unwrap();
 
