@@ -1,15 +1,15 @@
 use {
-    sexe_loader::projfs::{Provider, ReadSeek},
     std::{
         env,
         ffi::OsString,
-        fs, iter, mem,
+        fs,
+        io::{BufRead, BufReader, BufWriter, Write},
+        iter, mem,
         os::windows::ffi::{OsStrExt, OsStringExt},
         path::{Path, PathBuf},
+        process::{Child, Command, Stdio},
         slice,
-        sync::Once,
     },
-    util::{zip_app_dir, SeekableVec},
     uuid::Uuid,
     winapi_local::{
         shared::ntdef::TRUE,
@@ -20,10 +20,9 @@ use {
             winnt::HANDLE,
         },
     },
-    zip::ZipArchive,
 };
 
-fn setup() -> (PathBuf, Provider) {
+fn setup() -> (PathBuf, Child) {
     let mut uuid_buffer = Uuid::encode_buffer();
     let instance_id = Uuid::new_v4()
         .to_hyphenated()
@@ -34,14 +33,26 @@ fn setup() -> (PathBuf, Provider) {
         .iter()
         .collect::<PathBuf>();
 
-    let zip_bytes = zip_app_dir(&PathBuf::from("../testapp/assets")).unwrap();
-    let seeker = SeekableVec::new(zip_bytes);
+    let mut c = Command::new("../target/debug/test_provider.exe")
+        .arg(&temp_dir)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut reader = BufReader::new(c.stdout.as_mut().unwrap());
+    let mut line = String::new();
+    reader.read_line(&mut line).unwrap();
+    assert_eq!(line, "ready\n");
 
-    let seeker: Box<dyn ReadSeek> = Box::new(seeker);
-    let archive = ZipArchive::new(seeker).unwrap();
+    (temp_dir, c)
+}
 
-    let provider = Provider::new(&temp_dir, archive).unwrap();
-    (temp_dir, provider)
+fn shut_down(mut c: Child) {
+    {
+        let mut writer = BufWriter::new(c.stdin.as_mut().unwrap());
+        writer.write_all(b"done\n").unwrap();
+    }
+    c.wait().unwrap();
 }
 
 fn relative(root: &Path, sub: &str) -> PathBuf {
@@ -116,26 +127,19 @@ fn read_dir_wildcards(root: &Path, search: &str) -> Vec<String> {
     }
 }
 
-static LOGGING: Once = Once::new();
-fn enable_logging() {
-    LOGGING.call_once(|| {
-        flexi_logger::Logger::with_str("trace").start().unwrap();
-    });
-}
-
 #[test]
 fn can_read_file() {
-    enable_logging();
-    let (temp_dir, _provider) = setup();
+    let (temp_dir, provider) = setup();
 
     assert_eq!(read_file(&temp_dir, "file1.txt"), "file1 contents");
     assert_eq!(read_file(&temp_dir, "dir1/file2.txt"), "file2 contents");
+
+    shut_down(provider);
 }
 
 #[test]
 fn can_enumerate_directory() {
-    enable_logging();
-    let (temp_dir, _provider) = setup();
+    let (temp_dir, provider) = setup();
 
     assert_eq!(
         read_dir(&temp_dir, ""),
@@ -167,4 +171,6 @@ fn can_enumerate_directory() {
         read_dir_wildcards(&temp_dir, "dir1/file3.txt"),
         vec!["file3.txt"]
     );
+
+    shut_down(provider);
 }

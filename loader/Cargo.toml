@@ -4,6 +4,10 @@ version = "0.1.1"
 authors = ["Ben Weedon <ben@weedon.email>"]
 edition = "2018"
 
+[[bin]]
+name = "test_provider"
+path = "tests/test_provider.rs"
+
 [dependencies]
 flexi_logger = { version = "0.16.2", default-features = false }
 lazy_static = "1.4.0"
