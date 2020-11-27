@@ -1,3 +1,5 @@
+#![allow(clippy::mutex_atomic)]
+
 use {
     lazy_static::lazy_static,
     log::{error, trace},

@@ -92,14 +92,13 @@ impl SeekableVec {
     }
 
     fn read_byte(&mut self) -> Option<u8> {
-        let result = if self.cursor == self.vec.len() {
+        if self.cursor == self.vec.len() {
             None
         } else {
             let r = Some(self.vec[self.cursor]);
             self.cursor += 1;
             r
-        };
-        result
+        }
     }
 
     fn write_byte(&mut self, byte: u8) {
@@ -124,9 +123,9 @@ impl Seek for SeekableVec {
 
 impl Read for SeekableVec {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        for i in 0..buf.len() {
+        for (i, v) in buf.iter_mut().enumerate() {
             match self.read_byte() {
-                Some(byte) => buf[i] = byte,
+                Some(byte) => *v = byte,
                 None => return Ok(i),
             }
         }
@@ -154,7 +153,7 @@ mod tests {
     #[test]
     fn seekable_vec_no_negative_cursor() {
         {
-            let mut s = SeekableVec::new();
+            let mut s = SeekableVec::new(Vec::new());
             let result = s.seek(SeekFrom::End(-1));
             assert_eq!(result.is_err(), true);
             assert_eq!(
@@ -164,7 +163,7 @@ mod tests {
         }
 
         {
-            let mut s = SeekableVec::new();
+            let mut s = SeekableVec::new(Vec::new());
             s.write_all(b"abc").unwrap();
             let result = s.seek(SeekFrom::End(-4));
             assert_eq!(result.is_err(), true);
@@ -178,14 +177,14 @@ mod tests {
     #[test]
     fn seekable_vec_past_end_ok() {
         {
-            let mut s = SeekableVec::new();
+            let mut s = SeekableVec::new(Vec::new());
             let result = s.seek(SeekFrom::End(1));
             assert_eq!(result.is_ok(), true);
             assert_eq!(result.unwrap(), 0);
         }
 
         {
-            let mut s = SeekableVec::new();
+            let mut s = SeekableVec::new(Vec::new());
             s.write_all(b"abc").unwrap();
             let result = s.seek(SeekFrom::End(3));
             assert_eq!(result.is_ok(), true);
@@ -195,7 +194,7 @@ mod tests {
 
     #[test]
     fn seekable_vec_random_reads_writes() {
-        let mut s = SeekableVec::new();
+        let mut s = SeekableVec::new(Vec::new());
         s.write_all(b"abcdef").unwrap();
 
         s.seek(SeekFrom::Start(1)).unwrap();
