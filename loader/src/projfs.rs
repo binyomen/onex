@@ -7,7 +7,7 @@ use {
         collections::HashMap,
         error,
         ffi::{OsStr, OsString},
-        fmt,
+        fmt, fs,
         io::{self, Read, Seek},
         iter, mem,
         os::windows::ffi::{OsStrExt, OsStringExt},
@@ -162,11 +162,18 @@ fn release_global_lock() -> Result<()> {
     Ok(())
 }
 
-pub struct Provider;
+pub struct Provider {
+    root: PathBuf,
+}
 
 impl Provider {
     pub fn new(virt_root: &Path, archive: ZipArchive<Box<dyn ReadSeek>>) -> Result<Self> {
         obtain_global_lock()?;
+
+        let provider = Provider {
+            root: virt_root.to_path_buf(),
+        };
+        fs::create_dir_all(&provider.root)?;
 
         let instance_id = co_create_guid()?;
         mark_directory_as_placeholder(virt_root, instance_id)?;
@@ -179,7 +186,8 @@ impl Provider {
         *state = ProviderState::new();
         state.handle = InstanceHandle(instance_handle);
         state.archive = Some(archive);
-        Ok(Provider {})
+
+        Ok(provider)
     }
 }
 
@@ -189,6 +197,7 @@ impl Drop for Provider {
             stop_virtualizing(state.handle.0);
             let _ = release_global_lock();
         }
+        let _ = fs::remove_dir_all(&self.root);
     }
 }
 

@@ -1,5 +1,4 @@
 use {
-    scopeguard::ScopeGuard,
     sexe_loader::projfs::{Provider, ReadSeek},
     std::{
         env,
@@ -24,18 +23,16 @@ use {
     zip::ZipArchive,
 };
 
-fn setup() -> (ScopeGuard<PathBuf, impl FnOnce(PathBuf)>, Provider) {
+fn setup() -> (PathBuf, Provider) {
     let mut uuid_buffer = Uuid::encode_buffer();
     let instance_id = Uuid::new_v4()
         .to_hyphenated()
         .encode_lower(&mut uuid_buffer);
 
     let dir_name = format!("sexe_test_{}", instance_id);
-    let temp_dir: PathBuf = [env::temp_dir(), PathBuf::from(dir_name)].iter().collect();
-    fs::create_dir(&temp_dir).unwrap();
-    let temp_dir = scopeguard::guard(temp_dir, |d| {
-        let _ = fs::remove_dir_all(d);
-    });
+    let temp_dir = [env::temp_dir(), PathBuf::from(dir_name)]
+        .iter()
+        .collect::<PathBuf>();
 
     let zip_bytes = zip_app_dir(&PathBuf::from("../testapp/assets")).unwrap();
     let seeker = SeekableVec::new(zip_bytes);

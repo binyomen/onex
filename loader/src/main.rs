@@ -2,7 +2,7 @@ use {
     sexe_loader::projfs::{Provider, ReadSeek},
     std::{
         env,
-        fs::{self, remove_dir_all, File},
+        fs::{self, File},
         path::PathBuf,
         process::Command,
     },
@@ -30,21 +30,23 @@ fn run_app(seeker: OffsetSeeker) -> Result<()> {
         .to_hyphenated()
         .encode_lower(&mut uuid_buffer);
     let dir_name = format!("sexe_{}", instance_id);
-    let temp_dir: PathBuf = [env::temp_dir(), PathBuf::from(dir_name)].iter().collect();
-    fs::create_dir(&temp_dir)?;
-    let temp_dir = scopeguard::guard(temp_dir, |d| {
-        let _ = remove_dir_all(d);
-    });
+    let temp_dir = [env::temp_dir(), PathBuf::from(dir_name)]
+        .iter()
+        .collect::<PathBuf>();
 
     let seeker: Box<dyn ReadSeek> = Box::new(seeker);
     let archive = ZipArchive::new(seeker)?;
     let _provider = Provider::new(&temp_dir, archive)?;
 
-    let exe_name_file: PathBuf = [&temp_dir, &PathBuf::from("sexe_run")].iter().collect();
+    let exe_name_file = [&temp_dir, &PathBuf::from("sexe_run")]
+        .iter()
+        .collect::<PathBuf>();
     let exe_name = fs::read_to_string(exe_name_file)?.trim().to_owned();
-    let exe_file: PathBuf = [&temp_dir, &PathBuf::from(exe_name)].iter().collect();
+    let exe_file = [&temp_dir, &PathBuf::from(exe_name)]
+        .iter()
+        .collect::<PathBuf>();
 
-    let args: Vec<String> = env::args().skip(1).collect();
+    let args = env::args().skip(1).collect::<Vec<String>>();
     let mut p = Command::new(exe_file).args(&args).spawn()?;
 
     unsafe { FreeConsole() };
