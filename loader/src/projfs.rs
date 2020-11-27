@@ -5,13 +5,15 @@ use {
         collections::HashMap,
         error,
         ffi::{OsStr, OsString},
-        fmt, io, iter, mem,
+        fmt,
+        io::{self, Read, Seek},
+        iter, mem,
         os::windows::ffi::{OsStrExt, OsStringExt},
         path::{Path, PathBuf},
         ptr, slice,
         sync::{Mutex, PoisonError},
     },
-    util::{Error, OffsetSeeker, Result},
+    util::{Error, Result},
     winapi_local::{
         shared::{
             basetsd::{UINT32, UINT64},
@@ -101,6 +103,9 @@ struct InstanceHandle(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT);
 unsafe impl Send for InstanceHandle {}
 unsafe impl Sync for InstanceHandle {}
 
+pub trait ReadSeek: Read + Seek + Send + Sync {}
+impl<T> ReadSeek for T where T: Read + Seek + Send + Sync {}
+
 #[derive(Clone)]
 struct EnumerationSession {
     dir_name: OsString,
@@ -110,7 +115,7 @@ struct EnumerationSession {
 
 struct ProviderState {
     handle: InstanceHandle,
-    archive: Option<ZipArchive<OffsetSeeker>>,
+    archive: Option<ZipArchive<Box<dyn ReadSeek>>>,
     enumeration_sessions: HashMap<String, EnumerationSession>,
 }
 
@@ -140,7 +145,7 @@ lazy_static! {
 pub struct Provider;
 
 impl Provider {
-    pub fn new(virt_root: &Path, archive: ZipArchive<OffsetSeeker>) -> Result<Self> {
+    pub fn new(virt_root: &Path, archive: ZipArchive<Box<dyn ReadSeek>>) -> Result<Self> {
         let instance_id = co_create_guid()?;
         mark_directory_as_placeholder(virt_root, instance_id)?;
 

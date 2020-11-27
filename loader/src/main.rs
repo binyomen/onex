@@ -1,5 +1,5 @@
 use {
-    sexe_loader::projfs::Provider,
+    sexe_loader::projfs::{Provider, ReadSeek},
     std::{
         env,
         fs::{self, remove_dir_all, File},
@@ -36,6 +36,7 @@ fn run_app(seeker: OffsetSeeker) -> Result<()> {
         let _ = remove_dir_all(d);
     });
 
+    let seeker: Box<dyn ReadSeek> = Box::new(seeker);
     let archive = ZipArchive::new(seeker)?;
     let _provider = Provider::new(&temp_dir, archive)?;
 
