@@ -157,7 +157,7 @@ dependencies = [
 
 [[package]]
 name = "macros"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -289,7 +289,7 @@ checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 
 [[package]]
 name = "sexe"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "structopt",
  "util",
@@ -297,7 +297,7 @@ dependencies = [
 
 [[package]]
 name = "sexe_loader"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "flexi_logger",
  "lazy_static",
@@ -306,7 +306,7 @@ dependencies = [
  "util",
  "uuid",
  "winapi 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "winapi 0.3.9 (git+file:///C:/Users/Ben/repos/winapi-rs?branch=projfs)",
+ "winapi 0.3.9 (git+https://github.com/binyomen/winapi-rs?branch=projfs)",
  "zip",
 ]
 
@@ -353,7 +353,7 @@ dependencies = [
 
 [[package]]
 name = "testapp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "walkdir",
 ]
@@ -418,7 +418,7 @@ checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
 
 [[package]]
 name = "util"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "macros",
  "walkdir",
@@ -482,10 +482,10 @@ dependencies = [
 [[package]]
 name = "winapi"
 version = "0.3.9"
-source = "git+file:///C:/Users/Ben/repos/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
+source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
 dependencies = [
- "winapi-i686-pc-windows-gnu 0.4.0 (git+file:///C:/Users/Ben/repos/winapi-rs?branch=projfs)",
- "winapi-x86_64-pc-windows-gnu 0.4.0 (git+file:///C:/Users/Ben/repos/winapi-rs?branch=projfs)",
+ "winapi-i686-pc-windows-gnu 0.4.0 (git+https://github.com/binyomen/winapi-rs?branch=projfs)",
+ "winapi-x86_64-pc-windows-gnu 0.4.0 (git+https://github.com/binyomen/winapi-rs?branch=projfs)",
 ]
 
 [[package]]
@@ -497,7 +497,7 @@ checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
 [[package]]
 name = "winapi-i686-pc-windows-gnu"
 version = "0.4.0"
-source = "git+file:///C:/Users/Ben/repos/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
+source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
 
 [[package]]
 name = "winapi-util"
@@ -517,7 +517,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 [[package]]
 name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
-source = "git+file:///C:/Users/Ben/repos/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
+source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
 
 [[package]]
 name = "zip"
