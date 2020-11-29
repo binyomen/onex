@@ -1,6 +1,5 @@
 use {
     std::{
-        env,
         ffi::OsString,
         fs,
         io::{BufRead, BufReader, BufWriter, Write},
@@ -29,7 +28,7 @@ fn setup() -> (PathBuf, Child) {
         .encode_lower(&mut uuid_buffer);
 
     let dir_name = format!("sexe_test_{}", instance_id);
-    let temp_dir = [env::temp_dir(), PathBuf::from(dir_name)]
+    let temp_dir = ["../target/virt_roots", &dir_name]
         .iter()
         .collect::<PathBuf>();
 
