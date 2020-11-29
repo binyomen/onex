@@ -146,6 +146,9 @@ pub struct Provider {
 impl Provider {
     pub fn new(virt_root: &Path, archive: ZipArchive<Box<dyn ReadSeek>>) -> Result<Self> {
         trace!("Provider::new: {}", virt_root.to_string_lossy());
+
+        let mut state = PROVIDER_STATE.lock()?;
+
         let provider = Provider {
             root: virt_root.to_path_buf(),
         };
@@ -158,7 +161,6 @@ impl Provider {
 
         let instance_handle = start_virtualizing(virt_root, callbacks)?;
 
-        let mut state = PROVIDER_STATE.lock()?;
         *state = ProviderState::new();
         state.handle = InstanceHandle(instance_handle);
         state.archive = Some(archive);
