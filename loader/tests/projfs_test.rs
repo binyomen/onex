@@ -28,9 +28,12 @@ fn setup() -> (PathBuf, Child) {
         .encode_lower(&mut uuid_buffer);
 
     let dir_name = format!("sexe_test_{}", instance_id);
-    let temp_dir = ["../target/virt_roots", &dir_name]
-        .iter()
-        .collect::<PathBuf>();
+    let temp_dir = [
+        sexe_loader::get_temp_dir().unwrap(),
+        PathBuf::from(dir_name),
+    ]
+    .iter()
+    .collect::<PathBuf>();
 
     let mut c = Command::new("../target/debug/test_provider.exe")
         .arg(&temp_dir)

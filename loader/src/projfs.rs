@@ -1,12 +1,12 @@
 use {
+    crate::{raw_str_to_os_string, to_u16_vec},
     lazy_static::lazy_static,
     log::{error, trace},
     std::{
         collections::HashMap,
         error,
         ffi::{OsStr, OsString},
-        fmt, fs, io, iter, mem,
-        os::windows::ffi::{OsStrExt, OsStringExt},
+        fmt, fs, io, mem,
         path::{Path, PathBuf},
         ptr, slice,
         sync::{Mutex, PoisonError},
@@ -645,27 +645,6 @@ fn create_file_basic_info(file: &ZipFile) -> PRJ_FILE_BASIC_INFO {
         ChangeTime: large_int_zero,
         FileAttributes: attrs,
     }
-}
-
-fn to_u16_vec<T: Into<OsString>>(s: T) -> Vec<u16> {
-    s.into()
-        .encode_wide()
-        .chain(iter::once(0))
-        .collect::<Vec<u16>>()
-}
-
-fn raw_str_to_os_string(s: *const u16) -> OsString {
-    let len = get_raw_str_length(s);
-    let slice = unsafe { slice::from_raw_parts(s, len) };
-    OsString::from_wide(slice)
-}
-
-fn get_raw_str_length(s: *const u16) -> usize {
-    let mut i = 0;
-    while unsafe { *s.offset(i) } != 0 {
-        i += 1;
-    }
-    i as usize
 }
 
 fn ptr_str_to_option(p: *const u16) -> Option<OsString> {

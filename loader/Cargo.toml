@@ -21,10 +21,10 @@ zip = { version = "0.5.8", default-features = false }
 package = "winapi"
 git = "https://github.com/binyomen/winapi-rs"
 branch = "projfs"
-features = ["combaseapi", "projectedfslib", "winerror"]
+features = ["combaseapi", "fileapi", "projectedfslib", "winerror"]
 
 [dev-dependencies.winapi_local]
 package = "winapi"
 git = "https://github.com/binyomen/winapi-rs"
 branch = "projfs"
-features = ["combaseapi", "projectedfslib", "winerror", "fileapi", "handleapi"]
+features = ["combaseapi", "fileapi", "handleapi", "projectedfslib", "winerror"]

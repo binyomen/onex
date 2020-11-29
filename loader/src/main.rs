@@ -30,7 +30,7 @@ fn run_app(seeker: OffsetSeeker) -> Result<()> {
         .to_hyphenated()
         .encode_lower(&mut uuid_buffer);
     let dir_name = format!("sexe_{}", instance_id);
-    let temp_dir = [env::temp_dir(), PathBuf::from(dir_name)]
+    let temp_dir = [sexe_loader::get_temp_dir()?, PathBuf::from(dir_name)]
         .iter()
         .collect::<PathBuf>();
 
@@ -59,7 +59,7 @@ fn run_app(seeker: OffsetSeeker) -> Result<()> {
 fn enable_logging() {
     flexi_logger::Logger::with_str("trace")
         .log_to_file()
-        .directory(env::temp_dir())
+        .directory(sexe_loader::get_temp_dir().unwrap())
         .discriminant("sexe")
         .print_message()
         .start()
