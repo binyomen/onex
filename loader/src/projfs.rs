@@ -48,7 +48,9 @@ macro_rules! handle_hresult {
     ($r:expr) => {
         let r = $r;
         if FAILED(r) {
-            return Err(io::Error::from_raw_os_error(r).into());
+            let err = io::Error::from_raw_os_error(r);
+            error!("{}", err);
+            return Err(err.into());
         }
     };
 }
@@ -150,6 +152,7 @@ pub struct Provider {
 
 impl Provider {
     pub fn new(virt_root: &Path, archive: ZipArchive<Box<dyn ReadSeek>>) -> Result<Self> {
+        trace!("Provider::new");
         let provider = Provider {
             root: virt_root.to_path_buf(),
         };
@@ -167,12 +170,14 @@ impl Provider {
         state.handle = InstanceHandle(instance_handle);
         state.archive = Some(archive);
 
+        trace!("end Provider::new");
         Ok(provider)
     }
 }
 
 impl Drop for Provider {
     fn drop(&mut self) {
+        trace!("Provider::drop");
         match PROVIDER_STATE.lock() {
             Ok(state) => {
                 stop_virtualizing(state.handle.0);
@@ -183,6 +188,7 @@ impl Drop for Provider {
             }
             Err(err) => error!("drop: {}", err),
         }
+        trace!("end Provider::drop");
     }
 }
 
