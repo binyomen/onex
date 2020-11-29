@@ -145,7 +145,7 @@ pub struct Provider {
 
 impl Provider {
     pub fn new(virt_root: &Path, archive: ZipArchive<Box<dyn ReadSeek>>) -> Result<Self> {
-        trace!("Provider::new");
+        trace!("Provider::new: {}", virt_root.to_string_lossy());
         let provider = Provider {
             root: virt_root.to_path_buf(),
         };
