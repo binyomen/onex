@@ -475,7 +475,7 @@ dependencies = [
 [[package]]
 name = "winapi"
 version = "0.3.9"
-source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
+source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#e613157fe4b1768e791ae3ffedd417f8ee97c79b"
 dependencies = [
  "winapi-i686-pc-windows-gnu 0.4.0 (git+https://github.com/binyomen/winapi-rs?branch=projfs)",
  "winapi-x86_64-pc-windows-gnu 0.4.0 (git+https://github.com/binyomen/winapi-rs?branch=projfs)",
@@ -490,7 +490,7 @@ checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
 [[package]]
 name = "winapi-i686-pc-windows-gnu"
 version = "0.4.0"
-source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
+source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#e613157fe4b1768e791ae3ffedd417f8ee97c79b"
 
 [[package]]
 name = "winapi-util"
@@ -510,7 +510,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 [[package]]
 name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
-source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#b70eb6a427d1b9d754fcac807464c805ba1e01f6"
+source = "git+https://github.com/binyomen/winapi-rs?branch=projfs#e613157fe4b1768e791ae3ffedd417f8ee97c79b"
 
 [[package]]
 name = "zip"
