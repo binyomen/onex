@@ -56,6 +56,3 @@ jobs:
       with:
         command: fmt
         args: -- --check
-
-    - name: Run runTestApp.ps1
-      run: .\runTestApp.ps1
