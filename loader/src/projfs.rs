@@ -5,15 +5,13 @@ use {
         collections::HashMap,
         error,
         ffi::{OsStr, OsString},
-        fmt, fs,
-        io::{self, Read, Seek},
-        iter, mem,
+        fmt, fs, io, iter, mem,
         os::windows::ffi::{OsStrExt, OsStringExt},
         path::{Path, PathBuf},
         ptr, slice,
         sync::{Mutex, PoisonError},
     },
-    util::{Error, Result},
+    util::{Error, ReadSeek, Result},
     winapi_local::{
         shared::{
             basetsd::{UINT32, UINT64},
@@ -104,9 +102,6 @@ fn report_hresult(r: HresultResult) -> HRESULT {
 struct InstanceHandle(PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT);
 unsafe impl Send for InstanceHandle {}
 unsafe impl Sync for InstanceHandle {}
-
-pub trait ReadSeek: Read + Seek + Send + Sync {}
-impl<T> ReadSeek for T where T: Read + Seek + Send + Sync {}
 
 #[derive(Clone)]
 struct EnumerationSession {

@@ -1,12 +1,12 @@
 use {
-    sexe_loader::projfs::{Provider, ReadSeek},
+    sexe_loader::projfs::Provider,
     std::{
         env,
         fs::{self, File},
         path::PathBuf,
         process::Command,
     },
-    util::{OffsetSeeker, Result, SexeFile},
+    util::{OffsetSeeker, ReadSeek, Result, SexeFile},
     uuid::Uuid,
     winapi::um::wincon::FreeConsole,
     zip::ZipArchive,

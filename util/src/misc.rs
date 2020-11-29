@@ -3,6 +3,9 @@ use std::{
     io::{self, Read, Seek, SeekFrom, Write},
 };
 
+pub trait ReadSeek: Read + Seek + Send + Sync {}
+impl<T> ReadSeek for T where T: Read + Seek + Send + Sync {}
+
 pub struct OffsetSeeker {
     file: File,
     offset: u64,
