@@ -1,2 +1,2 @@
 [workspace]
-members = ["sexe", "loader", "testapp", "util", "macros"]
+members = ["cli", "loader", "testapp", "util", "macros"]
