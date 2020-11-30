@@ -8,8 +8,6 @@ on:
   workflow_dispatch: {}
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
@@ -68,3 +66,12 @@ jobs:
       with:
         name: onex
         path: .\target\onex_bundle_output
+
+    - name: Publish a rolling latest release
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        automatic_release_tag: latest
+        prerelease: true
+        title: Build from latest commit
+        files: target/onex_bundle_output/onex.exe
