@@ -1,5 +1,6 @@
 use {
     std::{
+        env,
         fs::File,
         io::{Read, Write},
         path::PathBuf,
@@ -7,7 +8,21 @@ use {
     util::{extract_zip, list_zip_contents, zip_app_dir, OnexFile, Result},
 };
 
-pub fn package_app(loader_path: PathBuf, app_dir: PathBuf, output_path: PathBuf) -> Result<()> {
+pub fn package_app(
+    app_dir: PathBuf,
+    output_path: PathBuf,
+    loader_path: Option<PathBuf>,
+) -> Result<()> {
+    let exe_path = env::current_exe()?;
+    let loader_path = loader_path.unwrap_or_else(|| {
+        match exe_path.parent() {
+            Some(path) => path.join("onex_loader.exe"),
+            // This should never be reached, since the parent of a file should
+            // always be its containing directory.
+            None => unreachable!(),
+        }
+    });
+
     let mut loader_file = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;
