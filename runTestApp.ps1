@@ -28,11 +28,15 @@ try {
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }
 
-    .\target\onex_bundle_output\onex.exe swap .\target\testapp_packaged.exe .\target\debug\onex_loader.exe --output .\target\testapp_packaged.exe
+    .\target\onex_bundle_output\onex.exe swap .\target\testapp_packaged.exe --loader .\target\debug\onex_loader.exe --output .\target\testapp_packaged.exe
     if (-not $?) { Write-Error 'Command failed' }
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }
-    .\target\onex_bundle_output\onex.exe swap .\target\testapp_packaged.exe .\target\debug\onex_loader.exe
+    .\target\onex_bundle_output\onex.exe swap .\target\testapp_packaged.exe --loader .\target\debug\onex_loader.exe
+    if (-not $?) { Write-Error 'Command failed' }
+    .\target\testapp_packaged.exe arg1 arg2 arg3
+    if (-not $?) { Write-Error 'Command failed' }
+    .\target\onex_bundle_output\onex.exe swap .\target\testapp_packaged.exe
     if (-not $?) { Write-Error 'Command failed' }
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }

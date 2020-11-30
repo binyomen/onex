@@ -32,9 +32,9 @@ enum Subcommand {
         #[structopt(parse(from_os_str))]
         app_path: PathBuf,
 
-        /// the new onex_loader.exe file
-        #[structopt(parse(from_os_str))]
-        loader_path: PathBuf,
+        /// the new onex_loader.exe file (default use loader bundled with onex.exe)
+        #[structopt(long = "loader", parse(from_os_str))]
+        loader_path: Option<PathBuf>,
 
         /// the final packaged exe to be generated (default modify in place)
         #[structopt(long = "output", parse(from_os_str))]

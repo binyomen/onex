@@ -13,16 +13,7 @@ pub fn package_app(
     output_path: PathBuf,
     loader_path: Option<PathBuf>,
 ) -> Result<()> {
-    let exe_path = env::current_exe()?;
-    let loader_path = loader_path.unwrap_or_else(|| {
-        match exe_path.parent() {
-            Some(path) => path.join("onex_loader.exe"),
-            // This should never be reached, since the parent of a file should
-            // always be its containing directory.
-            None => unreachable!(),
-        }
-    });
-
+    let loader_path = get_loader_bytes(loader_path)?;
     let mut loader_file = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;
@@ -38,9 +29,10 @@ pub fn package_app(
 
 pub fn swap_app_loader(
     app_path: PathBuf,
-    loader_path: PathBuf,
+    loader_path: Option<PathBuf>,
     output_path: Option<PathBuf>,
 ) -> Result<()> {
+    let loader_path = get_loader_bytes(loader_path)?;
     let mut loader_file = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;
@@ -70,4 +62,16 @@ pub fn extract_app_contents(app_path: PathBuf, output_path: PathBuf) -> Result<(
 pub fn check_app(app_path: PathBuf) -> Result<bool> {
     let mut file = File::open(&app_path)?;
     Ok(OnexFile::validate(&mut file).is_ok())
+}
+
+fn get_loader_bytes(loader_path: Option<PathBuf>) -> Result<PathBuf> {
+    let exe_path = env::current_exe()?;
+    Ok(loader_path.unwrap_or_else(|| {
+        match exe_path.parent() {
+            Some(path) => path.join("onex_loader.exe"),
+            // This should never be reached, since the parent of a file should
+            // always be its containing directory.
+            None => unreachable!(),
+        }
+    }))
 }
