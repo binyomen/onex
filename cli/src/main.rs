@@ -41,14 +41,14 @@ enum Subcommand {
         output_path: Option<PathBuf>,
     },
 
-    /// List the contents of a onex app
+    /// List the contents of an onex app
     List {
         /// the packaged app you want to list the contents of
         #[structopt(parse(from_os_str))]
         app_path: PathBuf,
     },
 
-    /// Extract the contents of a onex app
+    /// Extract the contents of an onex app
     Extract {
         /// the packaged app you want to extract the contents of
         #[structopt(parse(from_os_str))]
@@ -59,7 +59,7 @@ enum Subcommand {
         output_path: PathBuf,
     },
 
-    /// Succeeds if the given file is a onex app, fails otherwise
+    /// Succeeds if the given file is an onex app, fails otherwise
     Check {
         /// the packaged app you want to check
         #[structopt(parse(from_os_str))]
