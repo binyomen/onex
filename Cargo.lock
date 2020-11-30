@@ -157,7 +157,7 @@ dependencies = [
 
 [[package]]
 name = "macros"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "onex"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "structopt",
  "util",
@@ -193,7 +193,7 @@ dependencies = [
 
 [[package]]
 name = "onex_loader"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "flexi_logger",
  "lazy_static",
@@ -346,7 +346,7 @@ dependencies = [
 
 [[package]]
 name = "testapp"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "walkdir",
 ]
@@ -411,7 +411,7 @@ checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
 
 [[package]]
 name = "util"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "macros",
  "walkdir",
