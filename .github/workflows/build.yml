@@ -57,5 +57,14 @@ jobs:
         command: fmt
         args: -- --check
 
+    - name: Run createOnexBundle.ps1
+      run: .\createOnexBundle.ps1
+
     - name: Run runTestApp.ps1
       run: .\runTestApp.ps1
+
+    - name: Publish the bundled onex as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: onex
+        path: .\target\onex_bundle_output
