@@ -18,41 +18,41 @@ try {
     Copy-Item -Recurse .\testapp\assets\* .\target\testapp
     Copy-Item .\target\debug\testapp.exe .\target\testapp
 
-    .\target\onex_bundle_output\onex.exe pack .\target\testapp .\target\testapp_packaged.exe --loader .\target\debug\onex_loader.exe
+    .\target\onex_bundle_output\onex_x64.exe pack .\target\testapp .\target\testapp_packaged.exe --loader .\target\debug\onex_loader.exe
     if (-not $?) { Write-Error 'Command failed' }
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }
 
-    .\target\onex_bundle_output\onex.exe pack .\target\testapp .\target\testapp_packaged.exe
+    .\target\onex_bundle_output\onex_x64.exe pack .\target\testapp .\target\testapp_packaged.exe
     if (-not $?) { Write-Error 'Command failed' }
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }
 
-    .\target\onex_bundle_output\onex.exe swap .\target\testapp_packaged.exe --loader .\target\debug\onex_loader.exe --output .\target\testapp_packaged.exe
+    .\target\onex_bundle_output\onex_x64.exe swap .\target\testapp_packaged.exe --loader .\target\debug\onex_loader.exe --output .\target\testapp_packaged.exe
     if (-not $?) { Write-Error 'Command failed' }
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }
-    .\target\onex_bundle_output\onex.exe swap .\target\testapp_packaged.exe --loader .\target\debug\onex_loader.exe
+    .\target\onex_bundle_output\onex_x64.exe swap .\target\testapp_packaged.exe --loader .\target\debug\onex_loader.exe
     if (-not $?) { Write-Error 'Command failed' }
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }
-    .\target\onex_bundle_output\onex.exe swap .\target\testapp_packaged.exe
+    .\target\onex_bundle_output\onex_x64.exe swap .\target\testapp_packaged.exe
     if (-not $?) { Write-Error 'Command failed' }
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }
 
-    .\target\onex_bundle_output\onex.exe list .\target\testapp_packaged.exe
+    .\target\onex_bundle_output\onex_x64.exe list .\target\testapp_packaged.exe
     if (-not $?) { Write-Error 'Command failed' }
 
-    .\target\onex_bundle_output\onex.exe extract .\target\testapp_packaged.exe .\target\extracted
+    .\target\onex_bundle_output\onex_x64.exe extract .\target\testapp_packaged.exe .\target\extracted
     if (-not $?) { Write-Error 'Command failed' }
     Get-ChildItem -Recurse .\target\extracted
 
-    .\target\onex_bundle_output\onex.exe check .\target\testapp_packaged.exe
+    .\target\onex_bundle_output\onex_x64.exe check .\target\testapp_packaged.exe
     if (-not $?) { Write-Error 'Command failed' }
-    .\target\onex_bundle_output\onex.exe check .\target\onex_bundle_output\onex.exe
+    .\target\onex_bundle_output\onex_x64.exe check .\target\onex_bundle_output\onex_x64.exe
     if (-not $?) { Write-Error 'Command failed' }
-    .\target\onex_bundle_output\onex.exe check .\target\debug\onex.exe
+    .\target\onex_bundle_output\onex_x64.exe check .\target\debug\onex.exe
     if ($?) { Write-Error 'Command should have failed' }
 } finally {
     Pop-Location
