@@ -75,3 +75,23 @@ jobs:
         prerelease: true
         title: Build from latest commit
         files: target/onex_bundle_output/onex.exe
+
+  release:
+    runs-on: windows-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download the artifact from the previous job
+      uses: actions/download-artifact@v2
+      with:
+        name: onex
+        path: .\target\onex_bundle_output
+
+    - name: Publish the release
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        prerelease: false
+        files: target/onex_bundle_output/onex.exe
