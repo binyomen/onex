@@ -184,6 +184,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "onex"
+version = "0.1.1"
+dependencies = [
+ "structopt",
+ "util",
+]
+
+[[package]]
+name = "onex_loader"
+version = "0.1.1"
+dependencies = [
+ "flexi_logger",
+ "lazy_static",
+ "log",
+ "util",
+ "uuid",
+ "winapi 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.3.9 (git+https://github.com/binyomen/winapi-rs?branch=projfs)",
+ "zip",
+]
+
+[[package]]
 name = "ppv-lite86"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -279,28 +301,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "sexe"
-version = "0.1.1"
-dependencies = [
- "structopt",
- "util",
-]
-
-[[package]]
-name = "sexe_loader"
-version = "0.1.1"
-dependencies = [
- "flexi_logger",
- "lazy_static",
- "log",
- "util",
- "uuid",
- "winapi 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "winapi 0.3.9 (git+https://github.com/binyomen/winapi-rs?branch=projfs)",
- "zip",
 ]
 
 [[package]]

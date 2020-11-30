@@ -7,16 +7,16 @@ use {
 };
 
 const DATA_OFFSET_LENGTH: usize = 8;
-const SIGNATURE: &str = "SEXE";
+const SIGNATURE: &str = "ONEX";
 
-pub struct SexeFile {
+pub struct OnexFile {
     f: File,
 }
 
-impl SexeFile {
+impl OnexFile {
     pub fn new(mut f: File) -> Result<Self> {
         Self::validate(&mut f)?;
-        Ok(SexeFile { f })
+        Ok(OnexFile { f })
     }
 
     pub fn generate_bytes(loader_bytes: Vec<u8>, data_bytes: Vec<u8>) -> Vec<u8> {

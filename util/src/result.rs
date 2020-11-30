@@ -34,7 +34,7 @@ impl error::Error for PoisonErrorInternal {
 
 #[derive(Debug, ErrorEnum)]
 pub enum Error {
-    Sexe(ErrorInternal),
+    Onex(ErrorInternal),
     Io(io::Error),
     Zip(ZipError),
     Walkdir(walkdir::Error),

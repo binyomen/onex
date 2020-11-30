@@ -14,7 +14,7 @@ struct Opt {
 enum Subcommand {
     /// create a single-file executable
     Pack {
-        /// sexe_loader.exe file
+        /// onex_loader.exe file
         #[structopt(parse(from_os_str))]
         loader_path: PathBuf,
 
@@ -32,7 +32,7 @@ enum Subcommand {
         #[structopt(parse(from_os_str))]
         app_path: PathBuf,
 
-        /// the new sexe_loader.exe file
+        /// the new onex_loader.exe file
         #[structopt(parse(from_os_str))]
         loader_path: PathBuf,
 
@@ -41,14 +41,14 @@ enum Subcommand {
         output_path: Option<PathBuf>,
     },
 
-    /// List the contents of a sexe app
+    /// List the contents of a onex app
     List {
         /// the packaged app you want to list the contents of
         #[structopt(parse(from_os_str))]
         app_path: PathBuf,
     },
 
-    /// Extract the contents of a sexe app
+    /// Extract the contents of a onex app
     Extract {
         /// the packaged app you want to extract the contents of
         #[structopt(parse(from_os_str))]
@@ -59,7 +59,7 @@ enum Subcommand {
         output_path: PathBuf,
     },
 
-    /// Succeeds if the given file is a sexe app, fails otherwise
+    /// Succeeds if the given file is a onex app, fails otherwise
     Check {
         /// the packaged app you want to check
         #[structopt(parse(from_os_str))]
@@ -74,22 +74,22 @@ fn main() -> Result<()> {
             loader_path,
             app_dir,
             output_path,
-        } => sexe::package_app(loader_path, app_dir, output_path).map(|_| 0),
+        } => onex::package_app(loader_path, app_dir, output_path).map(|_| 0),
         Subcommand::Swap {
             app_path,
             loader_path,
             output_path,
-        } => sexe::swap_app_loader(app_path, loader_path, output_path).map(|_| 0),
-        Subcommand::List { app_path } => sexe::list_app_contents(app_path).map(|_| 0),
+        } => onex::swap_app_loader(app_path, loader_path, output_path).map(|_| 0),
+        Subcommand::List { app_path } => onex::list_app_contents(app_path).map(|_| 0),
         Subcommand::Extract {
             app_path,
             output_path,
-        } => sexe::extract_app_contents(app_path, output_path).map(|_| 0),
+        } => onex::extract_app_contents(app_path, output_path).map(|_| 0),
         Subcommand::Check { app_path } => {
-            if sexe::check_app(app_path)? {
+            if onex::check_app(app_path)? {
                 Ok(0)
             } else {
-                eprintln!("This is not a sexe app.");
+                eprintln!("This is not an onex app.");
                 Ok(1)
             }
         }

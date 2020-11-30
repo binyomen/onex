@@ -27,9 +27,9 @@ fn setup() -> (PathBuf, Child) {
         .to_hyphenated()
         .encode_lower(&mut uuid_buffer);
 
-    let dir_name = format!("sexe_test_{}", instance_id);
+    let dir_name = format!("onex_test_{}", instance_id);
     let temp_dir = [
-        sexe_loader::get_temp_dir().unwrap(),
+        onex_loader::get_temp_dir().unwrap(),
         PathBuf::from(dir_name),
     ]
     .iter()
@@ -145,13 +145,13 @@ fn can_enumerate_directory() {
 
     assert_eq!(
         read_dir(&temp_dir, ""),
-        vec!["dir1", "file1.txt", "sexe_run"]
+        vec!["dir1", "file1.txt", "onex_run"]
     );
     assert_eq!(read_dir(&temp_dir, "dir1"), vec!["file2.txt", "file3.txt"]);
 
     assert_eq!(
         read_dir_wildcards(&temp_dir, "*"),
-        vec![".", "..", "dir1", "file1.txt", "sexe_run"]
+        vec![".", "..", "dir1", "file1.txt", "onex_run"]
     );
     assert_eq!(
         read_dir_wildcards(&temp_dir, "dir1/*"),
@@ -168,7 +168,7 @@ fn can_enumerate_directory() {
         Vec::new() as Vec<String>
     );
     assert_eq!(read_dir_wildcards(&temp_dir, "dir1/*2*"), vec!["file2.txt"]);
-    assert_eq!(read_dir_wildcards(&temp_dir, "sexe_run"), vec!["sexe_run"]);
+    assert_eq!(read_dir_wildcards(&temp_dir, "onex_run"), vec!["onex_run"]);
     assert_eq!(
         read_dir_wildcards(&temp_dir, "dir1/file3.txt"),
         vec!["file3.txt"]

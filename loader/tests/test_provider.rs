@@ -1,5 +1,5 @@
 use {
-    sexe_loader::projfs::Provider,
+    onex_loader::projfs::Provider,
     std::{env, error, io, path::PathBuf},
     util::{zip_app_dir, ReadSeek, SeekableVec},
     zip::ZipArchive,

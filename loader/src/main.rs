@@ -1,12 +1,12 @@
 use {
-    sexe_loader::projfs::Provider,
+    onex_loader::projfs::Provider,
     std::{
         env,
         fs::{self, File},
         path::PathBuf,
         process::Command,
     },
-    util::{OffsetSeeker, ReadSeek, Result, SexeFile},
+    util::{OffsetSeeker, OnexFile, ReadSeek, Result},
     uuid::Uuid,
     winapi::um::wincon::FreeConsole,
     zip::ZipArchive,
@@ -16,7 +16,7 @@ fn main() -> Result<()> {
     enable_logging();
 
     let exe_path = env::current_exe()?;
-    let mut file = SexeFile::new(File::open(exe_path)?)?;
+    let mut file = OnexFile::new(File::open(exe_path)?)?;
 
     let seeker = file.data_accessor()?;
     run_app(seeker)?;
@@ -29,8 +29,8 @@ fn run_app(seeker: OffsetSeeker) -> Result<()> {
     let instance_id = Uuid::new_v4()
         .to_hyphenated()
         .encode_lower(&mut uuid_buffer);
-    let dir_name = format!("sexe_{}", instance_id);
-    let temp_dir = [sexe_loader::get_temp_dir()?, PathBuf::from(dir_name)]
+    let dir_name = format!("onex_{}", instance_id);
+    let temp_dir = [onex_loader::get_temp_dir()?, PathBuf::from(dir_name)]
         .iter()
         .collect::<PathBuf>();
 
@@ -38,7 +38,7 @@ fn run_app(seeker: OffsetSeeker) -> Result<()> {
     let archive = ZipArchive::new(seeker)?;
     let _provider = Provider::new(&temp_dir, archive)?;
 
-    let exe_name_file = [&temp_dir, &PathBuf::from("sexe_run")]
+    let exe_name_file = [&temp_dir, &PathBuf::from("onex_run")]
         .iter()
         .collect::<PathBuf>();
     let exe_name = fs::read_to_string(exe_name_file)?.trim().to_owned();
@@ -59,8 +59,8 @@ fn run_app(seeker: OffsetSeeker) -> Result<()> {
 fn enable_logging() {
     flexi_logger::Logger::with_str("trace")
         .log_to_file()
-        .directory(sexe_loader::get_temp_dir().unwrap())
-        .discriminant("sexe")
+        .directory(onex_loader::get_temp_dir().unwrap())
+        .discriminant("onex")
         .print_message()
         .start()
         .unwrap();
