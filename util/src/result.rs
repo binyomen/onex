@@ -44,10 +44,13 @@ pub enum Error {
 
 impl From<&str> for Error {
     fn from(msg: &str) -> Self {
-        ErrorInternal {
-            msg: msg.to_owned(),
-        }
-        .into()
+        msg.to_owned().into()
+    }
+}
+
+impl From<String> for Error {
+    fn from(msg: String) -> Self {
+        ErrorInternal { msg }.into()
     }
 }
 

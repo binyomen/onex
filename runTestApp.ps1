@@ -23,6 +23,11 @@ try {
     .\target\testapp_packaged.exe arg1 arg2 arg3
     if (-not $?) { Write-Error 'Command failed' }
 
+    .\target\onex_bundle_output\onex_x64.exe pack .\target\testapp .\target\testapp_packaged.exe --arch x86_64
+    if (-not $?) { Write-Error 'Command failed' }
+    .\target\testapp_packaged.exe arg1 arg2 arg3
+    if (-not $?) { Write-Error 'Command failed' }
+
     .\target\onex_bundle_output\onex_x64.exe pack .\target\testapp .\target\testapp_packaged.exe
     if (-not $?) { Write-Error 'Command failed' }
     .\target\testapp_packaged.exe arg1 arg2 arg3

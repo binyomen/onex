@@ -1,8 +1,10 @@
 use {
-    std::{path::PathBuf, process},
+    std::{env, path::PathBuf, process},
     structopt::StructOpt,
     util::Result,
 };
+
+const SUPPORTED_ARCHES: [&str; 2] = ["x86_64", "aarch64"];
 
 #[derive(StructOpt)]
 struct Opt {
@@ -23,8 +25,12 @@ enum Subcommand {
         output_path: PathBuf,
 
         /// onex_loader.exe file (default use loader bundled with onex.exe)
-        #[structopt(long = "loader", parse(from_os_str))]
+        #[structopt(long = "loader", conflicts_with("architecture"), parse(from_os_str))]
         loader_path: Option<PathBuf>,
+
+        /// The architecture of the loader you want to use (default the host architecture)
+        #[structopt(long = "arch", possible_values(&SUPPORTED_ARCHES), default_value = env::consts::ARCH)]
+        architecture: String,
     },
     /// swap out a loader in one packed app for another
     Swap {
@@ -37,8 +43,12 @@ enum Subcommand {
         loader_path: Option<PathBuf>,
 
         /// the final packaged exe to be generated (default modify in place)
-        #[structopt(long = "output", parse(from_os_str))]
+        #[structopt(long = "output", conflicts_with("architecture"), parse(from_os_str))]
         output_path: Option<PathBuf>,
+
+        /// The architecture of the loader you want to use (default the host architecture)
+        #[structopt(long = "arch", possible_values(&SUPPORTED_ARCHES), default_value = env::consts::ARCH)]
+        architecture: String,
     },
 
     /// List the contents of an onex app
@@ -74,12 +84,14 @@ fn main() -> Result<()> {
             app_dir,
             output_path,
             loader_path,
-        } => onex::package_app(app_dir, output_path, loader_path).map(|_| 0),
+            architecture,
+        } => onex::package_app(app_dir, output_path, loader_path, architecture).map(|_| 0),
         Subcommand::Swap {
             app_path,
             loader_path,
             output_path,
-        } => onex::swap_app_loader(app_path, loader_path, output_path).map(|_| 0),
+            architecture,
+        } => onex::swap_app_loader(app_path, loader_path, output_path, architecture).map(|_| 0),
         Subcommand::List { app_path } => onex::list_app_contents(app_path).map(|_| 0),
         Subcommand::Extract {
             app_path,

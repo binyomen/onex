@@ -12,8 +12,9 @@ pub fn package_app(
     app_dir: PathBuf,
     output_path: PathBuf,
     loader_path: Option<PathBuf>,
+    architecture: String,
 ) -> Result<()> {
-    let loader_path = get_loader_bytes(loader_path)?;
+    let loader_path = get_loader_bytes(loader_path, architecture)?;
     let mut loader_file = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;
@@ -31,8 +32,9 @@ pub fn swap_app_loader(
     app_path: PathBuf,
     loader_path: Option<PathBuf>,
     output_path: Option<PathBuf>,
+    architecture: String,
 ) -> Result<()> {
-    let loader_path = get_loader_bytes(loader_path)?;
+    let loader_path = get_loader_bytes(loader_path, architecture)?;
     let mut loader_file = File::open(&loader_path)?;
     let mut loader_bytes = Vec::new();
     loader_file.read_to_end(&mut loader_bytes)?;
@@ -64,14 +66,22 @@ pub fn check_app(app_path: PathBuf) -> Result<bool> {
     Ok(OnexFile::validate(&mut file).is_ok())
 }
 
-fn get_loader_bytes(loader_path: Option<PathBuf>) -> Result<PathBuf> {
+fn get_loader_bytes(loader_path: Option<PathBuf>, architecture: String) -> Result<PathBuf> {
     let exe_path = env::current_exe()?;
-    Ok(loader_path.unwrap_or_else(|| {
-        match exe_path.parent() {
-            Some(path) => path.join("onex_loader.exe"),
-            // This should never be reached, since the parent of a file should
-            // always be its containing directory.
-            None => unreachable!(),
+    match loader_path {
+        Some(path) => Ok(path),
+        None => {
+            let loader_name = match architecture.as_str() {
+                "x86_64" => "onex_loader_x64.exe",
+                "aarch64" => "onex_loader_arm64.exe",
+                a => return Err(format!("'{}' is not a supported loader architecture", a).into()),
+            };
+            match exe_path.parent() {
+                Some(path) => Ok(path.join(loader_name)),
+                // This should never be reached, since the parent of a file should
+                // always be its containing directory.
+                None => unreachable!(),
+            }
         }
-    }))
+    }
 }
