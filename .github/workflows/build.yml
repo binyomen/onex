@@ -58,7 +58,7 @@ jobs:
         args: -- --check
 
     - name: Run createOnexBundle.ps1
-      run: .\createOnexBundle.ps1
+      run: .\createOnexBundle.ps1 -BuildArm
 
     - name: Run runTestApp.ps1
       run: .\runTestApp.ps1
