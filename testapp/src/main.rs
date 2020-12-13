@@ -1,5 +1,5 @@
 use {
-    std::{env, error, fs::File, io::Read},
+    std::{env, error, fmt, fs::File, io::Read},
     walkdir::WalkDir,
 };
 
@@ -17,15 +17,15 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         let entry = entry?;
         if entry.path().is_file() {
             let mut file = File::open(entry.path())?;
+            println!("{}", entry.path().display());
 
             let mut contents = Vec::new();
             file.read_to_end(&mut contents)?;
 
-            println!(
-                "{} ({} bytes, created {}ms ago)",
-                entry.path().display(),
-                contents.len(),
-                file.metadata()?.created()?.elapsed()?.as_millis()
+            print_tabbed_line("bytes", contents.len());
+            print_tabbed_line(
+                "created xms ago",
+                file.metadata()?.created()?.elapsed()?.as_millis(),
             );
         }
     }
@@ -34,4 +34,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     println!();
 
     Ok(())
+}
+
+fn print_tabbed_line<T: fmt::Display>(key: &str, value: T) {
+    println!("\t{}: {}", key, value);
 }
