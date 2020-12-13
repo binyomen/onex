@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 walkdir = "2.3.1"
+winapi = "0.3.9"

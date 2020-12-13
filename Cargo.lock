@@ -349,6 +349,7 @@ name = "testapp"
 version = "0.1.2"
 dependencies = [
  "walkdir",
+ "winapi 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
