@@ -1,9 +1,10 @@
 use {
+    onex_loader::job_object::create_process_in_job_object,
     std::{
         env,
         fs::{self, File},
         path::PathBuf,
-        process::{self, Command},
+        process,
     },
     util::{get_temp_dir, OffsetSeeker, OnexFile, ProjfsProvider, ReadSeek, Result},
     uuid::Uuid,
@@ -19,10 +20,10 @@ fn main() -> Result<()> {
 
     let seeker = file.data_accessor()?;
     let exit_code = run_app(seeker)?;
-    process::exit(exit_code);
+    process::exit(exit_code as i32);
 }
 
-fn run_app(seeker: OffsetSeeker) -> Result<i32> {
+fn run_app(seeker: OffsetSeeker) -> Result<u32> {
     let mut uuid_buffer = Uuid::encode_buffer();
     let instance_id = Uuid::new_v4()
         .to_hyphenated()
@@ -45,11 +46,11 @@ fn run_app(seeker: OffsetSeeker) -> Result<i32> {
         .collect::<PathBuf>();
 
     let args = env::args().skip(1).collect::<Vec<String>>();
-    let mut p = Command::new(exe_file).args(&args).spawn()?;
+    let job = create_process_in_job_object(exe_file, args)?;
 
     unsafe { FreeConsole() };
-    let exit_status = p.wait()?;
-    Ok(exit_status.code().unwrap()) // This should never be None on Windows.
+    let exit_code = job.wait()?;
+    Ok(exit_code)
 }
 
 #[cfg(debug_assertions)]

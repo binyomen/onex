@@ -9,5 +9,5 @@ flexi_logger = { version = "0.16.2", default-features = false }
 log = "0.4.11"
 util = { path = "../util" }
 uuid = { version = "0.8.1", features = ["v4"] }
-winapi = { version = "0.3.9", features = ["wincon"] }
+winapi = { version = "0.3.9", features = ["handleapi", "ioapiset", "jobapi2", "wincon"] }
 zip = { version = "0.5.8", default-features = false }
