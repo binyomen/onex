@@ -1,5 +1,5 @@
 use {
-    crate::{raw_str_to_os_string, to_u16_vec},
+    crate::{raw_str_to_os_string, to_u16_vec, Error, ReadSeek, Result},
     lazy_static::lazy_static,
     log::{error, trace},
     std::{
@@ -11,7 +11,6 @@ use {
         ptr, slice,
         sync::{Mutex, PoisonError},
     },
-    util::{Error, ReadSeek, Result},
     winapi_local::{
         shared::{
             basetsd::{UINT32, UINT64},
@@ -139,17 +138,17 @@ lazy_static! {
     static ref PROVIDER_STATE: Mutex<ProviderState> = Mutex::new(ProviderState::new());
 }
 
-pub struct Provider {
+pub struct ProjfsProvider {
     root: PathBuf,
 }
 
-impl Provider {
+impl ProjfsProvider {
     pub fn new(virt_root: &Path, archive: ZipArchive<Box<dyn ReadSeek>>) -> Result<Self> {
-        trace!("Provider::new: {}", virt_root.to_string_lossy());
+        trace!("ProjfsProvider::new: {}", virt_root.to_string_lossy());
 
         let mut state = PROVIDER_STATE.lock()?;
 
-        let provider = Provider {
+        let provider = ProjfsProvider {
             root: virt_root.to_path_buf(),
         };
         fs::create_dir_all(&provider.root)?;
@@ -165,14 +164,14 @@ impl Provider {
         state.handle = InstanceHandle(instance_handle);
         state.archive = Some(archive);
 
-        trace!("end Provider::new");
+        trace!("end ProjfsProvider::new");
         Ok(provider)
     }
 }
 
-impl Drop for Provider {
+impl Drop for ProjfsProvider {
     fn drop(&mut self) {
-        trace!("Provider::drop");
+        trace!("ProjfsProvider::drop");
         match PROVIDER_STATE.lock() {
             Ok(state) => {
                 stop_virtualizing(state.handle.0);
@@ -183,7 +182,7 @@ impl Drop for Provider {
             }
             Err(err) => error!("drop: {}", err),
         }
-        trace!("end Provider::drop");
+        trace!("end ProjfsProvider::drop");
     }
 }
 
@@ -247,7 +246,7 @@ fn start_directory_enumeration_inner(
     let enumeration_id = format_guid(&unsafe { *enumeration_id });
     trace!(
         "start_directory_enumeration_cb: {:?} {}",
-        raw_str_to_os_string(requested_path),
+        unsafe { raw_str_to_os_string(requested_path) },
         enumeration_id
     );
 
@@ -307,7 +306,7 @@ fn get_directory_enumeration_inner(
         "get_directory_enumeration_cb: {}, {}, {:?}, {:?}",
         flags,
         enumeration_id,
-        raw_str_to_os_string(search_expression),
+        unsafe { raw_str_to_os_string(search_expression) },
         dir_entry_buffer_handle
     );
 
@@ -328,10 +327,9 @@ fn get_directory_enumeration_inner(
                 let mut basic_info = create_file_basic_info(&file);
 
                 let normalized = to_u16_vec(normalized);
-                trace!(
-                    "Returning file {:?}.",
+                trace!("Returning file {:?}.", unsafe {
                     raw_str_to_os_string(normalized.as_ptr())
-                );
+                });
                 let hr = unsafe {
                     PrjFillDirEntryBuffer(
                         normalized.as_ptr(),
@@ -365,10 +363,9 @@ fn get_directory_enumeration_inner(
 
 fn get_placeholder_info_inner(callback_data: *const PRJ_CALLBACK_DATA) -> HresultResult {
     let requested_name = unsafe { *callback_data }.FilePathName;
-    trace!(
-        "get_placeholder_info_cb: {:?}",
+    trace!("get_placeholder_info_cb: {:?}", unsafe {
         raw_str_to_os_string(requested_name)
-    );
+    });
 
     let mut state = PROVIDER_STATE.lock()?;
 
@@ -396,7 +393,7 @@ fn get_file_data_inner(
     let data_stream_id = unsafe { *callback_data }.DataStreamId;
     trace!(
         "get_file_data_cb: {:?}, {}, {}, {}",
-        raw_str_to_os_string(requested_name),
+        unsafe { raw_str_to_os_string(requested_name) },
         format_guid(&data_stream_id),
         byte_offset,
         length
@@ -510,12 +507,12 @@ fn update_search_expression(
         Some(opt_expr) => {
             if flags & PRJ_CB_DATA_FLAG_ENUM_RESTART_SCAN == PRJ_CB_DATA_FLAG_ENUM_RESTART_SCAN {
                 session.index = 0;
-                ptr_str_to_option(provided_search_expression)
+                search_expression_ptr_to_option(provided_search_expression)
             } else {
                 opt_expr
             }
         }
-        None => ptr_str_to_option(provided_search_expression),
+        None => search_expression_ptr_to_option(provided_search_expression),
     };
     session.search_expression = Some(search_expression.clone());
 
@@ -647,11 +644,11 @@ fn create_file_basic_info(file: &ZipFile) -> PRJ_FILE_BASIC_INFO {
     }
 }
 
-fn ptr_str_to_option(p: *const u16) -> Option<OsString> {
-    if p.is_null() {
+fn search_expression_ptr_to_option(p: *const u16) -> Option<OsString> {
+    if p.is_null() || unsafe { *p == 0 } {
         None
     } else {
-        Some(raw_str_to_os_string(p))
+        Some(unsafe { raw_str_to_os_string(p) })
     }
 }
 

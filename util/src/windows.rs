@@ -1,6 +1,5 @@
-pub mod projfs;
-
 use {
+    crate::Result,
     std::{
         env,
         ffi::OsString,
@@ -9,7 +8,6 @@ use {
         path::PathBuf,
         slice,
     },
-    util::Result,
     winapi_local::{shared::minwindef::MAX_PATH, um::fileapi::GetLongPathNameW},
 };
 
@@ -28,19 +26,20 @@ pub fn get_temp_dir() -> Result<PathBuf> {
         return Err(io::Error::last_os_error().into());
     }
 
-    Ok(raw_str_to_os_string(long_path_name.as_ptr()).into())
+    Ok(unsafe { raw_str_to_os_string(long_path_name.as_ptr()) }.into())
 }
 
-fn to_u16_vec<T: Into<OsString>>(s: T) -> Vec<u16> {
+pub fn to_u16_vec<T: Into<OsString>>(s: T) -> Vec<u16> {
     s.into()
         .encode_wide()
         .chain(iter::once(0))
         .collect::<Vec<u16>>()
 }
 
-fn raw_str_to_os_string(s: *const u16) -> OsString {
+#[allow(clippy::missing_safety_doc)]
+pub unsafe fn raw_str_to_os_string(s: *const u16) -> OsString {
     let len = get_raw_str_length(s);
-    let slice = unsafe { slice::from_raw_parts(s, len) };
+    let slice = slice::from_raw_parts(s, len);
     OsString::from_wide(slice)
 }
 

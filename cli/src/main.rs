@@ -75,6 +75,17 @@ enum Subcommand {
         #[structopt(parse(from_os_str))]
         app_path: PathBuf,
     },
+
+    /// Mounts the onex app to the given directory
+    Mount {
+        /// the packaged app you want to mount
+        #[structopt(parse(from_os_str))]
+        app_path: PathBuf,
+
+        /// the directory to mount to
+        #[structopt(parse(from_os_str))]
+        mount_path: PathBuf,
+    },
 }
 
 fn main() -> Result<()> {
@@ -105,6 +116,10 @@ fn main() -> Result<()> {
                 Ok(1)
             }
         }
+        Subcommand::Mount {
+            app_path,
+            mount_path,
+        } => onex::mount_app(app_path, mount_path).map(|_| 0),
     }?;
 
     process::exit(exit_code);

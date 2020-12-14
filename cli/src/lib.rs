@@ -2,10 +2,13 @@ use {
     std::{
         env,
         fs::File,
-        io::{Read, Write},
+        io::{self, Read, Write},
         path::PathBuf,
     },
-    util::{extract_zip, list_zip_contents, zip_app_dir, OnexFile, Result},
+    util::{
+        extract_zip, list_zip_contents, zip_app_dir, OnexFile, ProjfsProvider, ReadSeek, Result,
+    },
+    zip::ZipArchive,
 };
 
 pub fn package_app(
@@ -64,6 +67,21 @@ pub fn extract_app_contents(app_path: PathBuf, output_path: PathBuf) -> Result<(
 pub fn check_app(app_path: PathBuf) -> Result<bool> {
     let mut file = File::open(&app_path)?;
     Ok(OnexFile::validate(&mut file).is_ok())
+}
+
+pub fn mount_app(app_path: PathBuf, mount_path: PathBuf) -> Result<()> {
+    let mut onex_file = OnexFile::new(File::open(&app_path)?)?;
+    let seeker: Box<dyn ReadSeek> = Box::new(onex_file.data_accessor()?);
+
+    let archive = ZipArchive::new(seeker)?;
+    let _provider = ProjfsProvider::new(&mount_path, archive)?;
+
+    println!("Press enter to unmount...");
+    let mut buf = [0; 1];
+    let stdin = io::stdin();
+    stdin.lock().read_exact(&mut buf)?;
+
+    Ok(())
 }
 
 fn get_loader_bytes(loader_path: Option<PathBuf>, architecture: String) -> Result<PathBuf> {

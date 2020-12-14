@@ -4,7 +4,29 @@ version = "0.1.2"
 authors = ["Ben Weedon <ben@weedon.email>"]
 edition = "2018"
 
+[[bin]]
+name = "test_provider"
+path = "tests/test_provider.rs"
+
 [dependencies]
+flexi_logger = { version = "0.16.2", default-features = false }
+lazy_static = "1.4.0"
+log = "0.4.11"
 macros = { path = "../macros" }
 walkdir = "2.3.1"
 zip = { version = "0.5.8", default-features = false }
+
+[dependencies.winapi_local]
+package = "winapi"
+git = "https://github.com/binyomen/winapi-rs"
+branch = "projfs"
+features = ["combaseapi", "fileapi", "projectedfslib", "winerror"]
+
+[dev-dependencies]
+uuid = { version = "0.8.1", features = ["v4"] }
+
+[dev-dependencies.winapi_local]
+package = "winapi"
+git = "https://github.com/binyomen/winapi-rs"
+branch = "projfs"
+features = ["combaseapi", "fileapi", "handleapi", "projectedfslib", "winerror"]

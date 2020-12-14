@@ -1,13 +1,10 @@
 use {
     std::{
-        ffi::OsString,
         fs,
         io::{BufRead, BufReader, BufWriter, Write},
-        iter, mem,
-        os::windows::ffi::{OsStrExt, OsStringExt},
+        mem,
         path::{Path, PathBuf},
         process::{Child, Command, Stdio},
-        slice,
     },
     uuid::Uuid,
     winapi_local::{
@@ -28,12 +25,9 @@ fn setup() -> (PathBuf, Child) {
         .encode_lower(&mut uuid_buffer);
 
     let dir_name = format!("onex_test_{}", instance_id);
-    let temp_dir = [
-        onex_loader::get_temp_dir().unwrap(),
-        PathBuf::from(dir_name),
-    ]
-    .iter()
-    .collect::<PathBuf>();
+    let temp_dir = [util::get_temp_dir().unwrap(), PathBuf::from(dir_name)]
+        .iter()
+        .collect::<PathBuf>();
 
     let mut c = Command::new("../target/debug/test_provider.exe")
         .arg(&temp_dir)
@@ -75,32 +69,17 @@ fn read_dir(root: &Path, dir: &str) -> Vec<String> {
         .collect::<Vec<String>>()
 }
 
-fn to_u16_vec<T: Into<OsString>>(s: T) -> Vec<u16> {
-    s.into()
-        .encode_wide()
-        .chain(iter::once(0))
-        .collect::<Vec<u16>>()
-}
-
-fn raw_str_to_string(s: *const u16) -> String {
-    let len = get_raw_str_length(s);
-    let slice = unsafe { slice::from_raw_parts(s, len) };
-    (*OsString::from_wide(slice).to_string_lossy()).to_owned()
-}
-
-fn get_raw_str_length(s: *const u16) -> usize {
-    let mut i = 0;
-    while unsafe { *s.offset(i) } != 0 {
-        i += 1;
-    }
-    i as usize
+unsafe fn raw_str_to_string(s: *const u16) -> String {
+    (*util::raw_str_to_os_string(s).to_string_lossy()).to_owned()
 }
 
 fn find_first_file(search: &str) -> Option<(HANDLE, String)> {
     let mut data = unsafe { mem::zeroed::<WIN32_FIND_DATAW>() };
-    let handle = unsafe { FindFirstFileW(to_u16_vec(search).as_ptr(), &mut data) };
+    let handle = unsafe { FindFirstFileW(util::to_u16_vec(search).as_ptr(), &mut data) };
     if handle != INVALID_HANDLE_VALUE {
-        Some((handle, raw_str_to_string(data.cFileName.as_ptr())))
+        Some((handle, unsafe {
+            raw_str_to_string(data.cFileName.as_ptr())
+        }))
     } else {
         None
     }
@@ -110,7 +89,7 @@ fn find_next_file(handle: HANDLE) -> Option<String> {
     let mut data = unsafe { mem::zeroed::<WIN32_FIND_DATAW>() };
     let succeeded = unsafe { FindNextFileW(handle, &mut data) };
     if succeeded == TRUE.into() {
-        Some(raw_str_to_string(data.cFileName.as_ptr()))
+        Some(unsafe { raw_str_to_string(data.cFileName.as_ptr()) })
     } else {
         None
     }

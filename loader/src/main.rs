@@ -1,12 +1,11 @@
 use {
-    onex_loader::projfs::Provider,
     std::{
         env,
         fs::{self, File},
         path::PathBuf,
         process::{self, Command},
     },
-    util::{OffsetSeeker, OnexFile, ReadSeek, Result},
+    util::{get_temp_dir, OffsetSeeker, OnexFile, ProjfsProvider, ReadSeek, Result},
     uuid::Uuid,
     winapi::um::wincon::FreeConsole,
     zip::ZipArchive,
@@ -29,13 +28,13 @@ fn run_app(seeker: OffsetSeeker) -> Result<i32> {
         .to_hyphenated()
         .encode_lower(&mut uuid_buffer);
     let dir_name = format!("onex_{}", instance_id);
-    let temp_dir = [onex_loader::get_temp_dir()?, PathBuf::from(dir_name)]
+    let temp_dir = [get_temp_dir()?, PathBuf::from(dir_name)]
         .iter()
         .collect::<PathBuf>();
 
     let seeker: Box<dyn ReadSeek> = Box::new(seeker);
     let archive = ZipArchive::new(seeker)?;
-    let _provider = Provider::new(&temp_dir, archive)?;
+    let _provider = ProjfsProvider::new(&temp_dir, archive)?;
 
     let exe_name_file = [&temp_dir, &PathBuf::from("onex_run")]
         .iter()
@@ -57,7 +56,7 @@ fn run_app(seeker: OffsetSeeker) -> Result<i32> {
 fn enable_logging() {
     flexi_logger::Logger::with_str("trace")
         .log_to_file()
-        .directory(onex_loader::get_temp_dir().unwrap())
+        .directory(get_temp_dir().unwrap())
         .discriminant("onex")
         .print_message()
         .start()

@@ -1,7 +1,6 @@
 use {
-    onex_loader::projfs::Provider,
     std::{env, error, io, path::PathBuf},
-    util::{zip_app_dir, ReadSeek, SeekableVec},
+    util::{zip_app_dir, ProjfsProvider, ReadSeek, SeekableVec},
     zip::ZipArchive,
 };
 
@@ -21,7 +20,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let seeker: Box<dyn ReadSeek> = Box::new(seeker);
     let archive = ZipArchive::new(seeker).unwrap();
 
-    let _provider = Provider::new(&PathBuf::from(root), archive).unwrap();
+    let _provider = ProjfsProvider::new(&PathBuf::from(root), archive).unwrap();
 
     println!("ready");
 
